@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Renovación Enlaces UFINET - Análisis Estratégico [SOLO LECTURA]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --erc-blue-dark: #0B5EA8;
+            --erc-blue: #1E88E5;
+            --erc-teal: #26A69A;
+            --erc-green-light: #66BB6A;
+            --erc-green: #4CAF50;
+            --erc-red: #EF5350;
+            --erc-orange: #FF9800;
+            --erc-gray: #424242;
+            --erc-gray-light: #757575;
+        }
+
+        .powerbi-header {
+            background: white;
+            border-bottom: 3px solid var(--erc-teal);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .powerbi-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-text h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 2px;
+        }
+
+        .title-text p {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+        }
+
+        .export-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+        }
+
+        .readonly-badge {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .export-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .file-upload-section {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .file-upload-section.hidden {
+            display: none;
+        }
+
+        .file-upload-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .file-upload-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: white;
+            color: var(--erc-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .file-upload-container label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #fileInput { display: none; }
+
+        .file-status {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: calc(100vh - 121px);
+        }
+
+        .filters-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+
+        .filter-section h3 {
+            font-size: 13px;
+            color: var(--erc-gray);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-item {
+            margin-bottom: 16px;
+        }
+
+        .filter-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-item select:hover {
+            border-color: var(--erc-teal);
+        }
+
+        .scenario-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .scenario-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #d4d4d4;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .scenario-btn.active {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            border-color: var(--erc-blue);
+            color: white;
+        }
+
+        .scenario-btn:hover {
+            border-color: var(--erc-teal);
+        }
+
+        .reset-filters-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--erc-teal);
+            color: var(--erc-teal);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-filters-btn:hover {
+            background: var(--erc-teal);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(38, 166, 154, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f3f2f1;
+        }
+
+        .no-data-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--erc-gray-light);
+            gap: 16px;
+        }
+
+        .no-data-state h2 {
+            font-size: 24px;
+            color: var(--erc-gray);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal));
+        }
+
+        .kpi-card.savings::before {
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        }
+
+        .kpi-card.bandwidth::before {
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+        }
+
+        .kpi-card.savings .kpi-value {
+            color: #4CAF50;
+        }
+
+        .kpi-card.bandwidth .kpi-value {
+            color: #FF9800;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--erc-gray);
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtitle {
+            font-size: 11px;
+            color: var(--erc-gray-light);
+        }
+
+        .kpi-delta {
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .kpi-delta.positive {
+            color: #4CAF50;
+        }
+
+        .kpi-delta.negative {
+            color: #EF5350;
+        }
+
+        .comparison-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .comparison-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .comparison-card h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scenario-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .scenario-badge.m12 {
+            background: #E3F2FD;
+            color: #1976D2;
+        }
+
+        .scenario-badge.m24 {
+            background: #E8F5E9;
+            color: #388E3C;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-card h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-container {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-container h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            color: var(--erc-gray);
+        }
+
+        .currency-cell {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .savings-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .savings-positive {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .savings-negative {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .bandwidth-increase {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #FF9800;
+            font-weight: 600;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--erc-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; height: auto; }
+            .filters-panel { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="powerbi-header">
+        <div class="powerbi-title">
+            <div class="title-text">
+                <h1>Dashboard Renovación Enlaces UFINET</h1>
+                <p>Análisis Estratégico de Ahorro y Optimización de Bandwidth</p>
+            </div>
+        </div>
+        <button class="export-button" id="exportBtn" onclick="exportStaticVersion()" disabled>
+            📤 Exportar para Compartir
+        </button>
+        <div class="readonly-badge">🔒 SOLO LECTURA</div>
+    </div>
+
+    <div class="file-upload-section" id="uploadSection" style="display: none;">
+        <h2 style="margin-bottom: 8px; font-size: 18px;">📊 Carga tu archivo de análisis UFINET</h2>
+        <p style="font-size: 13px; opacity: 0.9;">Sube tu archivo Excel con datos de renovación para comenzar el análisis</p>
+        <div class="file-upload-container">
+            <label for="fileInput">
+                📁 Seleccionar archivo Excel
+            </label>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+            <span class="file-status" id="fileStatus">Sin archivo cargado</span>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filter-section">
+                <h3>🎯 Escenario de Análisis</h3>
+                <div class="scenario-selector">
+                    <button class="scenario-btn active" data-scenario="12M" onclick="selectScenario('12M')">
+                        12 Meses
+                    </button>
+                    <button class="scenario-btn" data-scenario="24M" onclick="selectScenario('24M')">
+                        24 Meses
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>📊 Filtros</h3>
+                
+                <div class="filter-item">
+                    <label>Empresa</label>
+                    <select id="empresaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las empresas</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Tipo de Servicio</label>
+                    <select id="servicioFilter" onchange="updateDashboard()">
+                        <option value="Todos">Todos los servicios</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Bandwidth Actual (Mbps)</label>
+                    <select id="bandwidthFilter" onchange="updateDashboard()">
+                        <option value="Todos">Todos los anchos de banda</option>
+                        <option value="0-10">0-10 Mbps</option>
+                        <option value="11-25">11-25 Mbps</option>
+                        <option value="26-50">26-50 Mbps</option>
+                        <option value="51+">51+ Mbps</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+        </div>
+
+        <div class="main-content">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+            </div>
+
+            <div class="no-data-state" id="noDataState" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                <h2>Sin datos para analizar</h2>
+                <p>Carga tu archivo Excel para comenzar el análisis estratégico de renovación</p>
+            </div>
+
+            <div id="dashboardContent">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Costo Actual</div>
+                        <div class="kpi-value" id="kpiActual">$0</div>
+                        <div class="kpi-subtitle">Mensual</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Costo Renovación</div>
+                        <div class="kpi-value" id="kpiRenovacion">$0</div>
+                        <div class="kpi-subtitle" id="kpiRenovacionLabel">12 Meses</div>
+                    </div>
+                    <div class="kpi-card savings">
+                        <div class="kpi-label">Ahorro Mensual</div>
+                        <div class="kpi-value" id="kpiAhorroMensual">$0</div>
+                        <div class="kpi-subtitle" id="kpiAhorroPct">0%</div>
+                    </div>
+                    <div class="kpi-card savings">
+                        <div class="kpi-label">Ahorro Anual</div>
+                        <div class="kpi-value" id="kpiAhorroAnual">$0</div>
+                        <div class="kpi-subtitle">Proyección 12 meses</div>
+                    </div>
+                    <div class="kpi-card bandwidth">
+                        <div class="kpi-label">Bandwidth Actual</div>
+                        <div class="kpi-value" id="kpiBWActual">0</div>
+                        <div class="kpi-subtitle">Mbps</div>
+                    </div>
+                    <div class="kpi-card bandwidth">
+                        <div class="kpi-label">Bandwidth Nuevo</div>
+                        <div class="kpi-value" id="kpiBWNuevo">0</div>
+                        <div class="kpi-subtitle" id="kpiBWIncrease">+0 Mbps</div>
+                    </div>
+                </div>
+
+                <div class="comparison-section">
+                    <div class="comparison-card">
+                        <h3>
+                            💰 Comparativa Renovación 12 Meses
+                            <span class="scenario-badge m12">12M</span>
+                        </h3>
+                        <div style="display: grid; gap: 12px; margin-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Mensual:</span>
+                                <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare12MMensual">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Anual:</span>
+                                <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare12MAnual">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Aumento Bandwidth:</span>
+                                <span style="font-weight: 700; color: var(--erc-orange); font-size: 14px;" id="compare12MBW">0 Mbps</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">% Reducción Costo:</span>
+                                <span style="font-weight: 700; color: var(--erc-blue); font-size: 14px;" id="compare12MPct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-card">
+                        <h3>
+                            💰 Comparativa Renovación 24 Meses
+                            <span class="scenario-badge m24">24M</span>
+                        </h3>
+                        <div style="display: grid; gap: 12px; margin-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Mensual:</span>
+                                <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare24MMensual">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Anual:</span>
+                                <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare24MAnual">$0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">Aumento Bandwidth:</span>
+                                <span style="font-weight: 700; color: var(--erc-orange); font-size: 14px;" id="compare24MBW">0 Mbps</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                                <span style="color: var(--erc-gray-light); font-size: 13px;">% Reducción Costo:</span>
+                                <span style="font-weight: 700; color: var(--erc-blue); font-size: 14px;" id="compare24MPct">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>📊 Comparación de Costos Mensuales</h3>
+                        <div class="chart-container">
+                            <canvas id="costComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>📈 Evolución de Bandwidth</h3>
+                        <div class="chart-container">
+                            <canvas id="bandwidthChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>🏢 Ahorro por Empresa</h3>
+                        <div class="chart-container">
+                            <canvas id="savingsByCompanyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>🎯 Distribución por Tipo de Servicio</h3>
+                        <div class="chart-container">
+                            <canvas id="serviceTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>📋 Detalle de Enlaces y Proyección de Ahorro</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>BW Actual</th>
+                                <th>BW Nuevo</th>
+                                <th>Costo Actual</th>
+                                <th>Costo Nuevo</th>
+                                <th>Ahorro Mensual</th>
+                                <th>Ahorro Anual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let DATA = [{"empresa": "Visión de Aguila, S.A.", "tipo": "DATOS", "idServicio": "GTGT02340002", "descripcion": "Telemetría - INDE", "bwActual": 10.0, "costoActual": 252.0, "bw12M": 15.0, "costo12M": 239.4, "bw24M": 20.0, "costo24M": 226.8}, {"empresa": "Visión de Aguila, S.A.", "tipo": "DATOS", "idServicio": "GTGT02340003", "descripcion": "Telemetría - AMM", "bwActual": 10.0, "costoActual": 285.6, "bw12M": 15.0, "costo12M": 239.4, "bw24M": 20.0, "costo24M": 226.8}, {"empresa": "Visión de Aguila, S.A.", "tipo": "INTERNET", "idServicio": "GT02340001", "descripcion": "Internet principal", "bwActual": 40.0, "costoActual": 201.6, "bw12M": 50.0, "costo12M": 191.52, "bw24M": 60.0, "costo24M": 181.44}, {"empresa": "Oxec, S.A.", "tipo": "INTERNET", "idServicio": "GT05120017", "descripcion": "Voz operativa", "bwActual": 5.0, "costoActual": 252.0, "bw12M": 10.0, "costo12M": 239.4, "bw24M": 15.0, "costo24M": 226.8}, {"empresa": "Oxec, S.A.", "tipo": "DATOS", "idServicio": "GTGT05120015", "descripcion": "Telemetría SCADA Oxec I - R10", "bwActual": 5.0, "costoActual": 252.0, "bw12M": 10.0, "costo12M": 239.4, "bw24M": 15.0, "costo24M": 226.8}, {"empresa": "Oxec II, S.A.", "tipo": "INTERNET", "idServicio": "GT05120013", "descripcion": "Internet (Plantas Oxec's)", "bwActual": 50.0, "costoActual": 573.44, "bw12M": 60.0, "costo12M": 544.768, "bw24M": 70.0, "costo24M": 516.096}, {"empresa": "Oxec II, S.A.", "tipo": "INTERNET", "idServicio": "GTGTOXE10037703I", "descripcion": "Internet (Respaldo Plantas Oxec's)", "bwActual": 200.0, "costoActual": 2293.76, "bw12M": 210.0, "costo12M": 2179.072, "bw24M": 220.0, "costo24M": 2064.384}, {"empresa": "Oxec II, S.A.", "tipo": "INTERNET", "idServicio": "GTGTOXE10262097C", "descripcion": "Internet Oxec I", "bwActual": 10.0, "costoActual": 134.4, "bw12M": 15.0, "costo12M": 127.68, "bw24M": 25.0, "costo24M": 120.96}, {"empresa": "Oxec II, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10041612C", "descripcion": "Telemetría Tactic - Panzos", "bwActual": 10.0, "costoActual": 134.4, "bw12M": 15.0, "costo12M": 127.68, "bw24M": 25.0, "costo24M": 120.96}, {"empresa": "Oxec II, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10034862C", "descripcion": "Telemetría SCADA Oxec II - R10", "bwActual": 10.0, "costoActual": 134.4, "bw12M": 15.0, "costo12M": 127.68, "bw24M": 20.0, "costo24M": 120.96}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GT05120012", "descripcion": "Telemetría relés y medidores", "bwActual": 10.0, "costoActual": 504.0, "bw12M": 15.0, "costo12M": 478.8, "bw24M": 20.0, "costo24M": 453.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGT05120008", "descripcion": "Telemetría INDE", "bwActual": 10.0, "costoActual": 252.0, "bw12M": 15.0, "costo12M": 239.4, "bw24M": 20.0, "costo24M": 226.8}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGT05120010", "descripcion": "Telemetría AMM - primario", "bwActual": 10.0, "costoActual": 252.0, "bw12M": 15.0, "costo12M": 239.4, "bw24M": 20.0, "costo24M": 226.8}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10037702C", "descripcion": "Telemetría AMM - secundario", "bwActual": 10.0, "costoActual": 285.6, "bw12M": 15.0, "costo12M": 239.4, "bw24M": 20.0, "costo24M": 226.8}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "INTERNET", "idServicio": "GTGTOXE10091534I", "descripcion": "Internet Principal Sub. Coatepeque II", "bwActual": 10.0, "costoActual": 167.99999999999997, "bw12M": 15.0, "costo12M": 159.6, "bw24M": 20.0, "costo24M": 151.2}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "INTERNET", "idServicio": "GTGTOXE10091538I", "descripcion": "Internet Principal Sub. Los Amates", "bwActual": 10.0, "costoActual": 167.99999999999997, "bw12M": 15.0, "costo12M": 159.6, "bw24M": 20.0, "costo24M": 151.2}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10091536C", "descripcion": "Telemetría Coatepeque II - Sub230 (Hacía AMM)", "bwActual": 2.0, "costoActual": 224.0, "bw12M": 5.0, "costo12M": 212.8, "bw24M": 10.0, "costo24M": 201.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10091540C", "descripcion": "Telemetría Sub. Los Amates - Sub Panzos 230Kv", "bwActual": 2.0, "costoActual": 224.0, "bw12M": 5.0, "costo12M": 212.8, "bw24M": 10.0, "costo24M": 201.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTTRA10113981C", "descripcion": "Telemetría Sub. Los Amates - INDE GuateSur (Medidores)", "bwActual": 1.0, "costoActual": 162.4, "bw12M": 5.0, "costo12M": 154.28, "bw24M": 10.0, "costo24M": 146.16}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10091541C", "descripcion": "Telemetría Sub. Los Amates - PH Oxec II", "bwActual": 2.0, "costoActual": 224.0, "bw12M": 5.0, "costo12M": 212.8, "bw24M": 10.0, "costo24M": 201.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10091539C", "descripcion": "Telemetría Sub. Los Amates - INDE GuateSur", "bwActual": 2.0, "costoActual": 224.0, "bw12M": 5.0, "costo12M": 212.8, "bw24M": 10.0, "costo24M": 201.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTOXE10091537C", "descripcion": "Telemetría Sub. Coatepeque II - PH Oxec II", "bwActual": 2.0, "costoActual": 224.0, "bw12M": 5.0, "costo12M": 212.8, "bw24M": 10.0, "costo24M": 201.6}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "INTERNET", "idServicio": "GTGTTRA10236107I", "descripcion": "Internet Principal Subestación Santo Tomás", "bwActual": 10.0, "costoActual": 128.8, "bw12M": 15.0, "costo12M": 122.36, "bw24M": 20.0, "costo24M": 115.92}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTTRA10236105C", "descripcion": "Telemetría Sub. Santo Tomás - Sub Panzos 230Kv", "bwActual": 2.0, "costoActual": 112.0, "bw12M": 5.0, "costo12M": 106.4, "bw24M": 10.0, "costo24M": 100.8}, {"empresa": "Transporte de Energía Eléctrica del Norte, S.A.", "tipo": "DATOS", "idServicio": "GTGTTRA10236106C", "descripcion": "Telemetría Sub. Santo Tomás - INDE GuateSur", "bwActual": 2.0, "costoActual": 112.0, "bw12M": 5.0, "costo12M": 106.4, "bw24M": 10.0, "costo24M": 100.8}, {"empresa": "Aguilar Arimany, Asociados Consultores, S. A.", "tipo": "INTERNET", "idServicio": "GTGTAGU10018105I", "descripcion": "Internet principal", "bwActual": 40.0, "costoActual": 318.08, "bw12M": 50.0, "costo12M": 302.176, "bw24M": 60.0, "costo24M": 286.272}, {"empresa": "Aguilar Arimany, Asociados Consultores, S. A.", "tipo": "INTERNET", "idServicio": "GTGTAGU10083210I", "descripcion": "Internet medidor", "bwActual": 5.0, "costoActual": 124.43999999999903, "bw12M": 15.0, "costo12M": 119.168, "bw24M": 20.0, "costo24M": 112.896}];
+let currentScenario = '12M';
+const charts = { cost: null, bandwidth: null, savings: null, service: null };
+const ERC_COLORS = ['#1E88E5', '#26A69A', '#66BB6A', '#FFA726', '#FF7043', '#AB47BC', '#42A5F5'];
+
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileStatus = document.getElementById('fileStatus');
+    fileStatus.textContent = 'Cargando...';
+    
+    document.getElementById('loadingSpinner').classList.add('active');
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            DATA = jsonData.map(row => ({
+                empresa: row['EMPRESA'] || '',
+                tipo: row['TIPO DE SERVICIO'] || '',
+                idServicio: row['ID SERVICIO'] || '',
+                descripcion: row['DESCRIPCION'] || '',
+                bwActual: parseFloat(row['ACTUAL (BANDWIDTH)']) || 0,
+                costoActual: parseFloat(row['ACTUAL (TOTAL)']) || 0,
+                bw12M: parseFloat(row['RENOVACIÓN (BANDWIDTH) 12M']) || 0,
+                costo12M: parseFloat(row['RENOVACIÓN (TOTAL) 12M']) || 0,
+                bw24M: parseFloat(row['RENOVACIÓN (BANDWIDTH) 24M']) || 0,
+                costo24M: parseFloat(row['RENOVACIÓN (TOTAL) 24M']) || 0
+            }));
+
+            fileStatus.textContent = `✅ ${DATA.length} enlaces cargados`;
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('filtersPanel').style.display = 'block';
+            document.getElementById('noDataState').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            document.getElementById('exportBtn').disabled = false;
+
+            populateFilters();
+            updateDashboard();
+            
+            document.getElementById('loadingSpinner').classList.remove('active');
+        } catch (error) {
+            alert('Error al procesar el archivo: ' + error.message);
+            fileStatus.textContent = '❌ Error al cargar';
+            document.getElementById('loadingSpinner').classList.remove('active');
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function populateFilters() {
+    const empresas = [...new Set(DATA.map(r => r.empresa))].sort();
+    const servicios = [...new Set(DATA.map(r => r.tipo))].sort();
+    
+    const empSelect = document.getElementById('empresaFilter');
+    empSelect.innerHTML = '<option value="Todas">Todas las empresas</option>';
+    empresas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e;
+        empSelect.appendChild(opt);
+    });
+
+    const servSelect = document.getElementById('servicioFilter');
+    servSelect.innerHTML = '<option value="Todos">Todos los servicios</option>';
+    servicios.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        servSelect.appendChild(opt);
+    });
+}
+
+function selectScenario(scenario) {
+    currentScenario = scenario;
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === scenario);
+    });
+    updateDashboard();
+}
+
+function getFiltered() {
+    const emp = document.getElementById('empresaFilter').value;
+    const serv = document.getElementById('servicioFilter').value;
+    const bw = document.getElementById('bandwidthFilter').value;
+    
+    return DATA.filter(r => {
+        if (emp !== 'Todas' && r.empresa !== emp) return false;
+        if (serv !== 'Todos' && r.tipo !== serv) return false;
+        
+        if (bw !== 'Todos') {
+            const bwActual = r.bwActual;
+            if (bw === '0-10' && (bwActual < 0 || bwActual > 10)) return false;
+            if (bw === '11-25' && (bwActual < 11 || bwActual > 25)) return false;
+            if (bw === '26-50' && (bwActual < 26 || bwActual > 50)) return false;
+            if (bw === '51+' && bwActual <= 50) return false;
+        }
+        
+        return true;
+    });
+}
+
+const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function updateKPIs() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    
+    const costoActual = d.reduce((s, r) => s + r.costoActual, 0);
+    const costoNuevo = d.reduce((s, r) => s + (isM12 ? r.costo12M : r.costo24M), 0);
+    const ahorroMensual = costoActual - costoNuevo;
+    const ahorroAnual = ahorroMensual * 12;
+    const pctAhorro = costoActual > 0 ? ((ahorroMensual / costoActual) * 100).toFixed(1) : 0;
+    
+    const bwActual = d.reduce((s, r) => s + r.bwActual, 0);
+    const bwNuevo = d.reduce((s, r) => s + (isM12 ? r.bw12M : r.bw24M), 0);
+    const bwIncrease = bwNuevo - bwActual;
+    
+    document.getElementById('kpiActual').textContent = fmt(costoActual);
+    document.getElementById('kpiRenovacion').textContent = fmt(costoNuevo);
+    document.getElementById('kpiRenovacionLabel').textContent = isM12 ? '12 Meses' : '24 Meses';
+    document.getElementById('kpiAhorroMensual').textContent = fmt(ahorroMensual);
+    document.getElementById('kpiAhorroPct').textContent = pctAhorro + '% ahorro';
+    document.getElementById('kpiAhorroAnual').textContent = fmt(ahorroAnual);
+    document.getElementById('kpiBWActual').textContent = bwActual + ' Mbps';
+    document.getElementById('kpiBWNuevo').textContent = bwNuevo + ' Mbps';
+    document.getElementById('kpiBWIncrease').textContent = '+' + bwIncrease + ' Mbps (+' + ((bwIncrease/bwActual)*100).toFixed(0) + '%)';
+    
+    // Comparativas
+    const ahorro12M = costoActual - d.reduce((s, r) => s + r.costo12M, 0);
+    const ahorro24M = costoActual - d.reduce((s, r) => s + r.costo24M, 0);
+    const bw12M = d.reduce((s, r) => s + r.bw12M, 0);
+    const bw24M = d.reduce((s, r) => s + r.bw24M, 0);
+    
+    document.getElementById('compare12MMensual').textContent = fmt(ahorro12M);
+    document.getElementById('compare12MAnual').textContent = fmt(ahorro12M * 12);
+    document.getElementById('compare12MBW').textContent = '+' + (bw12M - bwActual) + ' Mbps';
+    document.getElementById('compare12MPct').textContent = ((ahorro12M/costoActual)*100).toFixed(1) + '%';
+    
+    document.getElementById('compare24MMensual').textContent = fmt(ahorro24M);
+    document.getElementById('compare24MAnual').textContent = fmt(ahorro24M * 12);
+    document.getElementById('compare24MBW').textContent = '+' + (bw24M - bwActual) + ' Mbps';
+    document.getElementById('compare24MPct').textContent = ((ahorro24M/costoActual)*100).toFixed(1) + '%';
+}
+
+function updateCharts() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    
+    // Comparación de costos
+    if (charts.cost) charts.cost.destroy();
+    charts.cost = new Chart(document.getElementById('costComparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Actual', 'Renovación ' + currentScenario],
+            datasets: [{
+                label: 'Costo Mensual',
+                data: [
+                    d.reduce((s, r) => s + r.costoActual, 0),
+                    d.reduce((s, r) => s + (isM12 ? r.costo12M : r.costo24M), 0)
+                ],
+                backgroundColor: [ERC_COLORS[4], ERC_COLORS[2]]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+    
+    // Bandwidth
+    if (charts.bandwidth) charts.bandwidth.destroy();
+    charts.bandwidth = new Chart(document.getElementById('bandwidthChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Actual', 'Renovación ' + currentScenario],
+            datasets: [{
+                label: 'Bandwidth Total (Mbps)',
+                data: [
+                    d.reduce((s, r) => s + r.bwActual, 0),
+                    d.reduce((s, r) => s + (isM12 ? r.bw12M : r.bw24M), 0)
+                ],
+                backgroundColor: [ERC_COLORS[3], ERC_COLORS[1]]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' Mbps' } } }
+        }
+    });
+    
+    // Ahorro por empresa
+    const savingsByEmp = {};
+    d.forEach(r => {
+        if (!savingsByEmp[r.empresa]) savingsByEmp[r.empresa] = 0;
+        savingsByEmp[r.empresa] += r.costoActual - (isM12 ? r.costo12M : r.costo24M);
+    });
+    const topSavings = Object.entries(savingsByEmp).sort((a, b) => b[1] - a[1]);
+    
+    if (charts.savings) charts.savings.destroy();
+    charts.savings = new Chart(document.getElementById('savingsByCompanyChart'), {
+        type: 'bar',
+        data: {
+            labels: topSavings.map(e => e[0].substring(0, 20) + '...'),
+            datasets: [{
+                label: 'Ahorro Mensual USD',
+                data: topSavings.map(e => e[1]),
+                backgroundColor: ERC_COLORS[2]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+    
+    // Distribución por tipo
+    const byType = {};
+    d.forEach(r => {
+        if (!byType[r.tipo]) byType[r.tipo] = 0;
+        byType[r.tipo] += r.costoActual;
+    });
+    
+    if (charts.service) charts.service.destroy();
+    charts.service = new Chart(document.getElementById('serviceTypeChart'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(byType),
+            datasets: [{
+                data: Object.values(byType),
+                backgroundColor: ERC_COLORS
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right' } }
+        }
+    });
+}
+
+function updateTable() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+    
+    const sorted = d.map(r => {
+        const costoNuevo = isM12 ? r.costo12M : r.costo24M;
+        const bwNuevo = isM12 ? r.bw12M : r.bw24M;
+        const ahorro = r.costoActual - costoNuevo;
+        return { ...r, costoNuevo, bwNuevo, ahorro };
+    }).sort((a, b) => b.ahorro - a.ahorro);
+    
+    sorted.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${r.empresa.substring(0, 25)}${r.empresa.length > 25 ? '...' : ''}</td>
+            <td>${r.tipo}</td>
+            <td>${r.descripcion.substring(0, 30)}${r.descripcion.length > 30 ? '...' : ''}</td>
+            <td style="text-align: center;">${r.bwActual} Mbps</td>
+            <td style="text-align: center;">
+                <span class="bandwidth-increase">
+                    ${r.bwNuevo} Mbps
+                    <span style="font-size: 11px;">(+${r.bwNuevo - r.bwActual})</span>
+                </span>
+            </td>
+            <td class="currency-cell">${fmt(r.costoActual)}</td>
+            <td class="currency-cell">${fmt(r.costoNuevo)}</td>
+            <td class="currency-cell">
+                <span class="savings-badge ${r.ahorro > 0 ? 'savings-positive' : 'savings-negative'}">
+                    ${fmt(r.ahorro)}
+                </span>
+            </td>
+            <td class="currency-cell">${fmt(r.ahorro * 12)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('empresaFilter').value = 'Todas';
+    document.getElementById('servicioFilter').value = 'Todos';
+    document.getElementById('bandwidthFilter').value = 'Todos';
+    currentScenario = '12M';
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === '12M');
+    });
+    updateDashboard();
+}
+
+function updateDashboard() {
+    if (DATA.length === 0) return;
+    updateKPIs();
+    updateCharts();
+    updateTable();
+}
+
+function exportStaticVersion() {
+    if (DATA.length === 0) {
+        alert('⚠️ No hay datos cargados para exportar');
+        return;
+    }
+
+    const exportBtn = document.getElementById('exportBtn');
+    const originalText = exportBtn.innerHTML;
+    exportBtn.innerHTML = '⏳ Generando...';
+    exportBtn.disabled = true;
+
+    setTimeout(() => {
+        try {
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Renovación Enlaces UFINET [SOLO LECTURA]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f2f1; padding: 0; overflow-x: hidden; }
+        :root { --erc-blue-dark: #0B5EA8; --erc-blue: #1E88E5; --erc-teal: #26A69A; --erc-green-light: #66BB6A; --erc-green: #4CAF50; --erc-red: #EF5350; --erc-orange: #FF9800; --erc-gray: #424242; --erc-gray-light: #757575; }
+        .powerbi-header { background: white; border-bottom: 3px solid var(--erc-teal); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .powerbi-title { display: flex; align-items: center; gap: 16px; }
+        .title-text h1 { font-size: 20px; font-weight: 600; color: var(--erc-gray); margin-bottom: 2px; }
+        .title-text p { font-size: 12px; color: var(--erc-gray-light); }
+        .readonly-badge { padding: 8px 16px; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+        .dashboard-container { display: flex; height: calc(100vh - 61px); }
+        .filters-panel { width: 280px; background: white; border-right: 1px solid #e0e0e0; padding: 20px; overflow-y: auto; box-shadow: 2px 0 8px rgba(0,0,0,0.05); }
+        .filter-section { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #e0e0e0; }
+        .filter-section:last-child { border-bottom: none; }
+        .filter-section h3 { font-size: 13px; color: var(--erc-gray); margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-item { margin-bottom: 16px; }
+        .filter-item label { display: block; font-size: 12px; color: var(--erc-gray-light); margin-bottom: 6px; font-weight: 500; }
+        .filter-item select { width: 100%; padding: 8px; border: 1px solid #d4d4d4; border-radius: 4px; font-size: 13px; background: white; cursor: pointer; transition: all 0.2s; }
+        .filter-item select:hover { border-color: var(--erc-teal); }
+        .scenario-selector { display: flex; gap: 8px; margin-top: 12px; }
+        .scenario-btn { flex: 1; padding: 10px; border: 2px solid #d4d4d4; background: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; text-align: center; }
+        .scenario-btn.active { background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%); border-color: var(--erc-blue); color: white; }
+        .scenario-btn:hover { border-color: var(--erc-teal); }
+        .reset-filters-btn { width: 100%; padding: 10px; background: white; border: 2px solid var(--erc-teal); color: var(--erc-teal); border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+        .reset-filters-btn:hover { background: var(--erc-teal); color: white; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(38, 166, 154, 0.2); }
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; background: #f3f2f1; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 20px; }
+        .kpi-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; position: relative; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s; }
+        .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal)); }
+        .kpi-card.savings::before { background: linear-gradient(90deg, #4CAF50, #66BB6A); }
+        .kpi-card.bandwidth::before { background: linear-gradient(90deg, #FF9800, #FFB74D); }
+        .kpi-card.savings .kpi-value { color: #4CAF50; }
+        .kpi-card.bandwidth .kpi-value { color: #FF9800; }
+        .kpi-label { font-size: 12px; color: var(--erc-gray-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+        .kpi-value { font-size: 28px; font-weight: 700; color: var(--erc-gray); margin-bottom: 4px; }
+        .kpi-subtitle { font-size: 11px; color: var(--erc-gray-light); }
+        .comparison-section { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+        .comparison-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .comparison-card h3 { font-size: 14px; color: var(--erc-gray); margin-bottom: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .scenario-badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .scenario-badge.m12 { background: #E3F2FD; color: #1976D2; }
+        .scenario-badge.m24 { background: #E8F5E9; color: #388E3C; }
+        .charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+        .chart-card { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .chart-card h3 { font-size: 14px; color: var(--erc-gray); margin-bottom: 16px; font-weight: 600; }
+        .chart-container { height: 300px; position: relative; }
+        .table-container { background: white; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow-x: auto; }
+        .table-container h3 { font-size: 14px; color: var(--erc-gray); margin-bottom: 16px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%); color: white; }
+        th { padding: 12px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        tbody tr { border-bottom: 1px solid #e0e0e0; transition: background 0.2s; }
+        tbody tr:hover { background: #f5f5f5; }
+        td { padding: 12px; font-size: 13px; color: var(--erc-gray); }
+        .currency-cell { text-align: right; font-family: 'Courier New', monospace; font-weight: 600; }
+        .savings-badge { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .savings-positive { background: #e8f5e9; color: #2e7d32; }
+        .savings-negative { background: #ffebee; color: #c62828; }
+        .bandwidth-increase { display: inline-flex; align-items: center; gap: 4px; color: #FF9800; font-weight: 600; }
+        @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } .charts-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .dashboard-container { flex-direction: column; height: auto; } .filters-panel { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; } .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="powerbi-header">
+        <div class="powerbi-title">
+            <div class="title-text">
+                <h1>Dashboard Renovación Enlaces UFINET</h1>
+                <p>Análisis Estratégico de Ahorro y Optimización de Bandwidth</p>
+            </div>
+        </div>
+        <div class="readonly-badge">🔒 SOLO LECTURA</div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="filters-panel">
+            <div class="filter-section">
+                <h3>🎯 Escenario de Análisis</h3>
+                <div class="scenario-selector">
+                    <button class="scenario-btn active" data-scenario="12M" onclick="selectScenario('12M')">12 Meses</button>
+                    <button class="scenario-btn" data-scenario="24M" onclick="selectScenario('24M')">24 Meses</button>
+                </div>
+            </div>
+            <div class="filter-section">
+                <h3>📊 Filtros</h3>
+                <div class="filter-item">
+                    <label>Empresa</label>
+                    <select id="empresaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las empresas</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Tipo de Servicio</label>
+                    <select id="servicioFilter" onchange="updateDashboard()">
+                        <option value="Todos">Todos los servicios</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>Bandwidth Actual (Mbps)</label>
+                    <select id="bandwidthFilter" onchange="updateDashboard()">
+                        <option value="Todos">Todos los anchos de banda</option>
+                        <option value="0-10">0-10 Mbps</option>
+                        <option value="11-25">11-25 Mbps</option>
+                        <option value="26-50">26-50 Mbps</option>
+                        <option value="51+">51+ Mbps</option>
+                    </select>
+                </div>
+            </div>
+            <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+        </div>
+
+        <div class="main-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Costo Actual</div>
+                    <div class="kpi-value" id="kpiActual">$0</div>
+                    <div class="kpi-subtitle">Mensual</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Costo Renovación</div>
+                    <div class="kpi-value" id="kpiRenovacion">$0</div>
+                    <div class="kpi-subtitle" id="kpiRenovacionLabel">12 Meses</div>
+                </div>
+                <div class="kpi-card savings">
+                    <div class="kpi-label">Ahorro Mensual</div>
+                    <div class="kpi-value" id="kpiAhorroMensual">$0</div>
+                    <div class="kpi-subtitle" id="kpiAhorroPct">0%</div>
+                </div>
+                <div class="kpi-card savings">
+                    <div class="kpi-label">Ahorro Anual</div>
+                    <div class="kpi-value" id="kpiAhorroAnual">$0</div>
+                    <div class="kpi-subtitle">Proyección 12 meses</div>
+                </div>
+                <div class="kpi-card bandwidth">
+                    <div class="kpi-label">Bandwidth Actual</div>
+                    <div class="kpi-value" id="kpiBWActual">0</div>
+                    <div class="kpi-subtitle">Mbps</div>
+                </div>
+                <div class="kpi-card bandwidth">
+                    <div class="kpi-label">Bandwidth Nuevo</div>
+                    <div class="kpi-value" id="kpiBWNuevo">0</div>
+                    <div class="kpi-subtitle" id="kpiBWIncrease">+0 Mbps</div>
+                </div>
+            </div>
+
+            <div class="comparison-section">
+                <div class="comparison-card">
+                    <h3>💰 Comparativa Renovación 12 Meses <span class="scenario-badge m12">12M</span></h3>
+                    <div style="display: grid; gap: 12px; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Mensual:</span>
+                            <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare12MMensual">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Anual:</span>
+                            <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare12MAnual">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Aumento Bandwidth:</span>
+                            <span style="font-weight: 700; color: var(--erc-orange); font-size: 14px;" id="compare12MBW">0 Mbps</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">% Reducción Costo:</span>
+                            <span style="font-weight: 700; color: var(--erc-blue); font-size: 14px;" id="compare12MPct">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <h3>💰 Comparativa Renovación 24 Meses <span class="scenario-badge m24">24M</span></h3>
+                    <div style="display: grid; gap: 12px; margin-top: 16px;">
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Mensual:</span>
+                            <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare24MMensual">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Ahorro Anual:</span>
+                            <span style="font-weight: 700; color: var(--erc-green); font-size: 14px;" id="compare24MAnual">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">Aumento Bandwidth:</span>
+                            <span style="font-weight: 700; color: var(--erc-orange); font-size: 14px;" id="compare24MBW">0 Mbps</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 12px; background: #f5f5f5; border-radius: 6px;">
+                            <span style="color: var(--erc-gray-light); font-size: 13px;">% Reducción Costo:</span>
+                            <span style="font-weight: 700; color: var(--erc-blue); font-size: 14px;" id="compare24MPct">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📊 Comparación de Costos Mensuales</h3>
+                    <div class="chart-container"><canvas id="costComparisonChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>📈 Evolución de Bandwidth</h3>
+                    <div class="chart-container"><canvas id="bandwidthChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🏢 Ahorro por Empresa</h3>
+                    <div class="chart-container"><canvas id="savingsByCompanyChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 Distribución por Tipo de Servicio</h3>
+                    <div class="chart-container"><canvas id="serviceTypeChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>📋 Detalle de Enlaces y Proyección de Ahorro</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>BW Actual</th>
+                            <th>BW Nuevo</th>
+                            <th>Costo Actual</th>
+                            <th>Costo Nuevo</th>
+                            <th>Ahorro Mensual</th>
+                            <th>Ahorro Anual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const DATA = ${JSON.stringify(DATA)};
+let currentScenario = '12M';
+const charts = { cost: null, bandwidth: null, savings: null, service: null };
+const ERC_COLORS = ['#1E88E5', '#26A69A', '#66BB6A', '#FFA726', '#FF7043', '#AB47BC', '#42A5F5'];
+
+function populateFilters() {
+    const empresas = [...new Set(DATA.map(r => r.empresa))].sort();
+    const servicios = [...new Set(DATA.map(r => r.tipo))].sort();
+    
+    const empSelect = document.getElementById('empresaFilter');
+    empSelect.innerHTML = '<option value="Todas">Todas las empresas</option>';
+    empresas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e;
+        empSelect.appendChild(opt);
+    });
+
+    const servSelect = document.getElementById('servicioFilter');
+    servSelect.innerHTML = '<option value="Todos">Todos los servicios</option>';
+    servicios.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        servSelect.appendChild(opt);
+    });
+}
+
+function selectScenario(scenario) {
+    currentScenario = scenario;
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === scenario);
+    });
+    updateDashboard();
+}
+
+function getFiltered() {
+    const emp = document.getElementById('empresaFilter').value;
+    const serv = document.getElementById('servicioFilter').value;
+    const bw = document.getElementById('bandwidthFilter').value;
+    
+    return DATA.filter(r => {
+        if (emp !== 'Todas' && r.empresa !== emp) return false;
+        if (serv !== 'Todos' && r.tipo !== serv) return false;
+        if (bw !== 'Todos') {
+            const bwActual = r.bwActual;
+            if (bw === '0-10' && (bwActual < 0 || bwActual > 10)) return false;
+            if (bw === '11-25' && (bwActual < 11 || bwActual > 25)) return false;
+            if (bw === '26-50' && (bwActual < 26 || bwActual > 50)) return false;
+            if (bw === '51+' && bwActual <= 50) return false;
+        }
+        return true;
+    });
+}
+
+const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function updateKPIs() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    const costoActual = d.reduce((s, r) => s + r.costoActual, 0);
+    const costoNuevo = d.reduce((s, r) => s + (isM12 ? r.costo12M : r.costo24M), 0);
+    const ahorroMensual = costoActual - costoNuevo;
+    const ahorroAnual = ahorroMensual * 12;
+    const pctAhorro = costoActual > 0 ? ((ahorroMensual / costoActual) * 100).toFixed(1) : 0;
+    const bwActual = d.reduce((s, r) => s + r.bwActual, 0);
+    const bwNuevo = d.reduce((s, r) => s + (isM12 ? r.bw12M : r.bw24M), 0);
+    const bwIncrease = bwNuevo - bwActual;
+    
+    document.getElementById('kpiActual').textContent = fmt(costoActual);
+    document.getElementById('kpiRenovacion').textContent = fmt(costoNuevo);
+    document.getElementById('kpiRenovacionLabel').textContent = isM12 ? '12 Meses' : '24 Meses';
+    document.getElementById('kpiAhorroMensual').textContent = fmt(ahorroMensual);
+    document.getElementById('kpiAhorroPct').textContent = pctAhorro + '% ahorro';
+    document.getElementById('kpiAhorroAnual').textContent = fmt(ahorroAnual);
+    document.getElementById('kpiBWActual').textContent = bwActual + ' Mbps';
+    document.getElementById('kpiBWNuevo').textContent = bwNuevo + ' Mbps';
+    document.getElementById('kpiBWIncrease').textContent = '+' + bwIncrease + ' Mbps (+' + ((bwIncrease/bwActual)*100).toFixed(0) + '%)';
+    
+    const ahorro12M = costoActual - d.reduce((s, r) => s + r.costo12M, 0);
+    const ahorro24M = costoActual - d.reduce((s, r) => s + r.costo24M, 0);
+    const bw12M = d.reduce((s, r) => s + r.bw12M, 0);
+    const bw24M = d.reduce((s, r) => s + r.bw24M, 0);
+    
+    document.getElementById('compare12MMensual').textContent = fmt(ahorro12M);
+    document.getElementById('compare12MAnual').textContent = fmt(ahorro12M * 12);
+    document.getElementById('compare12MBW').textContent = '+' + (bw12M - bwActual) + ' Mbps';
+    document.getElementById('compare12MPct').textContent = ((ahorro12M/costoActual)*100).toFixed(1) + '%';
+    document.getElementById('compare24MMensual').textContent = fmt(ahorro24M);
+    document.getElementById('compare24MAnual').textContent = fmt(ahorro24M * 12);
+    document.getElementById('compare24MBW').textContent = '+' + (bw24M - bwActual) + ' Mbps';
+    document.getElementById('compare24MPct').textContent = ((ahorro24M/costoActual)*100).toFixed(1) + '%';
+}
+
+function updateCharts() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    
+    if (charts.cost) charts.cost.destroy();
+    charts.cost = new Chart(document.getElementById('costComparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Actual', 'Renovación ' + currentScenario],
+            datasets: [{
+                label: 'Costo Mensual',
+                data: [d.reduce((s, r) => s + r.costoActual, 0), d.reduce((s, r) => s + (isM12 ? r.costo12M : r.costo24M), 0)],
+                backgroundColor: [ERC_COLORS[4], ERC_COLORS[2]]
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } } }
+    });
+    
+    if (charts.bandwidth) charts.bandwidth.destroy();
+    charts.bandwidth = new Chart(document.getElementById('bandwidthChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Actual', 'Renovación ' + currentScenario],
+            datasets: [{
+                label: 'Bandwidth Total (Mbps)',
+                data: [d.reduce((s, r) => s + r.bwActual, 0), d.reduce((s, r) => s + (isM12 ? r.bw12M : r.bw24M), 0)],
+                backgroundColor: [ERC_COLORS[3], ERC_COLORS[1]]
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' Mbps' } } } }
+    });
+    
+    const savingsByEmp = {};
+    d.forEach(r => {
+        if (!savingsByEmp[r.empresa]) savingsByEmp[r.empresa] = 0;
+        savingsByEmp[r.empresa] += r.costoActual - (isM12 ? r.costo12M : r.costo24M);
+    });
+    const topSavings = Object.entries(savingsByEmp).sort((a, b) => b[1] - a[1]);
+    
+    if (charts.savings) charts.savings.destroy();
+    charts.savings = new Chart(document.getElementById('savingsByCompanyChart'), {
+        type: 'bar',
+        data: {
+            labels: topSavings.map(e => e[0].substring(0, 20) + '...'),
+            datasets: [{ label: 'Ahorro Mensual USD', data: topSavings.map(e => e[1]), backgroundColor: ERC_COLORS[2] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } } }
+    });
+    
+    const byType = {};
+    d.forEach(r => {
+        if (!byType[r.tipo]) byType[r.tipo] = 0;
+        byType[r.tipo] += r.costoActual;
+    });
+    
+    if (charts.service) charts.service.destroy();
+    charts.service = new Chart(document.getElementById('serviceTypeChart'), {
+        type: 'doughnut',
+        data: { labels: Object.keys(byType), datasets: [{ data: Object.values(byType), backgroundColor: ERC_COLORS }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+    });
+}
+
+function updateTable() {
+    const d = getFiltered();
+    const isM12 = currentScenario === '12M';
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+    
+    const sorted = d.map(r => {
+        const costoNuevo = isM12 ? r.costo12M : r.costo24M;
+        const bwNuevo = isM12 ? r.bw12M : r.bw24M;
+        const ahorro = r.costoActual - costoNuevo;
+        return { ...r, costoNuevo, bwNuevo, ahorro };
+    }).sort((a, b) => b.ahorro - a.ahorro);
+    
+    sorted.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = \`
+            <td>\${r.empresa.substring(0, 25)}\${r.empresa.length > 25 ? '...' : ''}</td>
+            <td>\${r.tipo}</td>
+            <td>\${r.descripcion.substring(0, 30)}\${r.descripcion.length > 30 ? '...' : ''}</td>
+            <td style="text-align: center;">\${r.bwActual} Mbps</td>
+            <td style="text-align: center;">
+                <span class="bandwidth-increase">\${r.bwNuevo} Mbps <span style="font-size: 11px;">(+\${r.bwNuevo - r.bwActual})</span></span>
+            </td>
+            <td class="currency-cell">\${fmt(r.costoActual)}</td>
+            <td class="currency-cell">\${fmt(r.costoNuevo)}</td>
+            <td class="currency-cell">
+                <span class="savings-badge \${r.ahorro > 0 ? 'savings-positive' : 'savings-negative'}">\${fmt(r.ahorro)}</span>
+            </td>
+            <td class="currency-cell">\${fmt(r.ahorro * 12)}</td>
+        \`;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('empresaFilter').value = 'Todas';
+    document.getElementById('servicioFilter').value = 'Todos';
+    document.getElementById('bandwidthFilter').value = 'Todos';
+    currentScenario = '12M';
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.scenario === '12M');
+    });
+    updateDashboard();
+}
+
+function updateDashboard() {
+    updateKPIs();
+    updateCharts();
+    updateTable();
+}
+
+window.onload = function() {
+    populateFilters();
+    updateDashboard();
+};
+    <\/script>
+</body>
+</html>`;
+
+            const blob = new Blob([htmlTemplate], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Dashboard_UFINET_COMPARTIBLE.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            exportBtn.innerHTML = '✅ Exportado exitosamente!';
+            setTimeout(() => {
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error al exportar:', error);
+            alert('❌ Error al generar archivo para compartir');
+            exportBtn.innerHTML = originalText;
+            exportBtn.disabled = false;
+        }
+    }, 500);
+}
+
+// Inicialización automática para versión VIEW
+window.onload = function() {
+    document.getElementById('exportBtn').disabled = false;
+    populateFilters();
+    updateDashboard();
+};
+    </script>
+</body>
+</html>

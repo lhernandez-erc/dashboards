@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Presupuesto TI 2025 - ERC Capital Corp [SOLO LECTURA]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Colores corporativos ERC */
+        :root {
+            --erc-blue-dark: #0B5EA8;
+            --erc-blue: #1E88E5;
+            --erc-teal: #26A69A;
+            --erc-green-light: #66BB6A;
+            --erc-green: #4CAF50;
+            --erc-gray: #424242;
+            --erc-gray-light: #757575;
+        }
+
+        .powerbi-header {
+            background: white;
+            border-bottom: 3px solid var(--erc-teal);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .powerbi-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-text h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 2px;
+        }
+
+        .title-text p {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+        }
+
+        .export-button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .export-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+        }
+
+        .readonly-badge {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .export-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Nuevo: Sección de carga de archivo */
+        .file-upload-section {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+        }
+
+        .file-upload-section.hidden {
+            display: none;
+        }
+
+        .file-upload-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .file-upload-container label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: white;
+            color: var(--erc-blue);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .file-upload-container label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-status {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .file-status.loaded {
+            background: var(--erc-green);
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: calc(100vh - 200px);
+            transition: height 0.5s ease;
+        }
+
+        .dashboard-container.expanded {
+            height: calc(100vh - 85px);
+        }
+
+        /* Panel de filtros lateral izquierdo */
+        .filters-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filter-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-section h3::before {
+            content: '';
+            width: 3px;
+            height: 14px;
+            background: linear-gradient(180deg, var(--erc-blue), var(--erc-teal));
+            border-radius: 2px;
+        }
+
+        .filter-item {
+            margin-bottom: 16px;
+        }
+
+        .filter-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-item select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            color: var(--erc-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--erc-teal);
+            box-shadow: 0 0 0 2px rgba(38, 166, 154, 0.1);
+        }
+
+        .month-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .month-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            background: white;
+        }
+
+        .month-checkbox:hover {
+            background: #f5f5f5;
+            border-color: var(--erc-teal);
+        }
+
+        .month-checkbox.active {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            border-color: var(--erc-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .month-checkbox input {
+            margin-right: 6px;
+        }
+
+        .reset-filters-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--erc-teal);
+            color: var(--erc-teal);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-filters-btn:hover {
+            background: var(--erc-teal);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(38, 166, 154, 0.2);
+        }
+
+        /* Contenido principal */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f3f2f1;
+        }
+
+        /* Estado inicial - Sin datos */
+        .no-data-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--erc-gray-light);
+            gap: 16px;
+        }
+
+        .no-data-state svg {
+            width: 120px;
+            height: 120px;
+            opacity: 0.3;
+        }
+
+        .no-data-state h2 {
+            font-size: 24px;
+            color: var(--erc-gray);
+        }
+
+        .no-data-state p {
+            font-size: 14px;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* KPIs con gradiente ERC */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal));
+        }
+
+        .kpi-card.opex::before {
+            background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+        }
+
+        .kpi-card.capex::before {
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+        }
+
+        .kpi-card.opex .kpi-value {
+            color: #FF6B6B;
+        }
+
+        .kpi-card.capex .kpi-value {
+            color: #4ECDC4;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--erc-gray);
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtitle {
+            font-size: 11px;
+            color: var(--erc-gray-light);
+        }
+
+        /* Gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: linear-gradient(180deg, var(--erc-blue), var(--erc-teal));
+            border-radius: 2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-container canvas {
+            max-height: 300px;
+        }
+
+        /* Tabla de datos */
+        .data-table-container {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-title::before {
+            content: '';
+            width: 3px;
+            height: 16px;
+            background: linear-gradient(180deg, var(--erc-blue), var(--erc-teal));
+            border-radius: 2px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead {
+            background: linear-gradient(135deg, var(--erc-blue-dark) 0%, var(--erc-blue) 100%);
+            color: white;
+        }
+
+        .data-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--erc-gray);
+        }
+
+        .data-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .currency-cell {
+            font-weight: 600;
+            color: var(--erc-blue);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* Barra de progreso */
+        .progress-container {
+            width: 100%;
+            height: 24px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--erc-teal), var(--erc-green));
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+        }
+
+        .progress-bar.low {
+            background: linear-gradient(90deg, #ef5350, #f44336);
+        }
+
+        .progress-bar.medium {
+            background: linear-gradient(90deg, #ffa726, #ff9800);
+        }
+
+        .progress-bar.high {
+            background: linear-gradient(90deg, #66bb6a, #4caf50);
+        }
+
+        .progress-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .progress-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            pointer-events: none;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .loading-spinner.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--erc-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; height: auto; }
+            .filters-panel { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="powerbi-header">
+        <div class="powerbi-title">
+            <div class="title-text">
+                <h1>Dashboard Presupuesto TI 2025</h1>
+                <p>Análisis de Ejecución Presupuestaria - Tecnología de la Información</p>
+            </div>
+        </div>
+        <button class="export-button" id="exportBtn" onclick="exportStaticVersion()" disabled>
+            📤 Exportar para Compartir
+        </button>
+        <div class="readonly-badge">🔒 SOLO LECTURA</div>
+    </div>
+
+    <!-- Sección de carga de archivo -->
+    <div class="file-upload-section">
+        <h2 style="margin-bottom: 8px; font-size: 18px;">📊 Conecta tu archivo Excel</h2>
+        <p style="font-size: 13px; opacity: 0.9;">Carga tu archivo PresupuestoEjecutado2025.xlsx para actualizar el dashboard</p>
+        <div class="file-upload-container">
+            <label for="fileInput">
+                📁 Seleccionar archivo Excel
+            </label>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
+            <span class="file-status" id="fileStatus">Sin archivo cargado</span>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <!-- Panel de filtros lateral -->
+        <div class="filters-panel" id="filtersPanel">
+            <div class="filter-section">
+                <h3>📊 Filtros</h3>
+                
+                <div class="filter-item">
+                    <label>Empresa</label>
+                    <select id="empresaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las empresas</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Categoría</label>
+                    <select id="categoriaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las categorías</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>📅 Meses para Análisis</h3>
+                <div class="month-filter-grid" id="monthFilters"></div>
+            </div>
+
+            <div class="filter-section" style="border-left: 3px solid #9C27B0; padding-left: 12px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; padding: 12px;">
+                <h3 style="font-size: 11px; color: #9C27B0;">✅ MESES EJECUTADOS (PARA % EJECUCIÓN)</h3>
+                <p style="font-size: 10px; color: var(--erc-gray-light); margin-bottom: 8px; line-height: 1.4;">Marca solo los meses cerrados contablemente</p>
+                <div class="month-filter-grid" id="monthEjecutadosFilters"></div>
+            </div>
+
+            <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+            </div>
+
+            <div class="no-data-state" id="noDataState" style="display: none;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h2>Sin datos cargados</h2>
+                <p>Por favor, carga tu archivo Excel usando el botón de arriba para comenzar a visualizar tu dashboard con datos actualizados en tiempo real.</p>
+            </div>
+
+            <div id="dashboardContent">
+                <!-- KPIs -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Presupuestado</div>
+                        <div class="kpi-value" id="kpi_total">$0</div>
+                        <div class="kpi-subtitle">Presupuesto anual</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Promedio Mensual</div>
+                        <div class="kpi-value" id="kpi_promedio">$0</div>
+                        <div class="kpi-subtitle">Por mes</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Categoría Principal</div>
+                        <div class="kpi-value" style="font-size: 16px;" id="kpi_categoria">-</div>
+                        <div class="kpi-subtitle" id="kpi_categoria_valor">$0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Empresas Activas</div>
+                        <div class="kpi-value" id="kpi_empresas">0</div>
+                        <div class="kpi-subtitle">Con presupuesto</div>
+                    </div>
+                    <div class="kpi-card" style="border-top: 4px solid #9C27B0;">
+                        <div class="kpi-label">% Ejecución</div>
+                        <div class="kpi-value" style="color: #9C27B0;" id="kpi_porcentaje">0%</div>
+                        <div class="kpi-subtitle">Del presupuesto</div>
+                    </div>
+                    <div class="kpi-card opex">
+                        <div class="kpi-label">Total OPEX</div>
+                        <div class="kpi-value" id="kpi_opex">$0</div>
+                        <div class="kpi-subtitle">Gastos Operativos</div>
+                    </div>
+                    <div class="kpi-card capex">
+                        <div class="kpi-label">Total CAPEX</div>
+                        <div class="kpi-value" id="kpi_capex">$0</div>
+                        <div class="kpi-subtitle">Inversión Capital</div>
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-title">Ejecución Mensual 2025</div>
+                        <div class="chart-container">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-title">Top 5 Empresas por Gasto</div>
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-title">Distribución por Categoría</div>
+                        <div class="chart-container">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card full-width">
+                        <div class="chart-title">Comparativa Mensual - Meses Seleccionados</div>
+                        <div class="chart-container">
+                            <canvas id="barChartMonthly"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de datos -->
+                <div class="data-table-container">
+                    <div class="table-header">
+                        <div class="table-title">Top 15 Registros por Monto Ejecutado</div>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Categoría</th>
+                                <th>Nomenclatura</th>
+                                <th>Presupuesto</th>
+                                <th>Total Ejecutado</th>
+                                <th style="width: 180px;">% Ejecución</th>
+                                <th>Nivel</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const ERC_COLORS = ['#0B5EA8', '#1E88E5', '#26A69A', '#66BB6A', '#4CAF50', '#1976D2'];
+let selectedMonths = new Set(MESES);
+let mesesEjecutados = new Set(['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre']); // Hasta Octubre
+let charts = {};
+let DATA = [{"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 615, "Febrero": 1238, "Marzo": 125, "Abril": 7849, "Mayo": 448, "Junio": 0, "Julio": 0, "Agosto": 5498, "Septiembre": 0, "Octubre": 2000, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.12.08", "Categoría": "AUDIO Y VIDEO", "Enero": 0, "Febrero": 78, "Marzo": 0, "Abril": 615, "Mayo": 0, "Junio": 96, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 4763, "Marzo": 0, "Abril": 0, "Mayo": 8165, "Junio": 0, "Julio": 256, "Agosto": 0, "Septiembre": 0, "Octubre": 1800, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 1154, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 224, "Febrero": 447, "Marzo": 539, "Abril": 163, "Mayo": 286, "Junio": 38, "Julio": 323, "Agosto": 888, "Septiembre": 1540, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 823, "Febrero": 0, "Marzo": 46, "Abril": 112, "Mayo": 290, "Junio": 61, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 346, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 81, "Septiembre": 161, "Octubre": 1200, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.13.05", "Categoría": "HERRAMIENTAS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 58, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 19, "Abril": 50, "Mayo": 863, "Junio": 0, "Julio": 19, "Agosto": 45, "Septiembre": 139, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 2622, "Febrero": 2709, "Marzo": 2735, "Abril": 2868, "Mayo": 2663, "Junio": 3095, "Julio": 2770, "Agosto": 2548, "Septiembre": 1772, "Octubre": 2700, "Noviembre": 2700, "Diciembre": 2700}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 7006, "Febrero": 6007, "Marzo": 3005, "Abril": 3354, "Mayo": 6317, "Junio": 3184, "Julio": 3146, "Agosto": 3018, "Septiembre": 64, "Octubre": 7000, "Noviembre": 3500, "Diciembre": 3500}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.01.06.15.07", "Categoría": "CIBERSEGURIDAD", "Enero": 0, "Febrero": 10013, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 4541}, {"Empresa": "Multiservicios de Energía Renovable, S.A.", "Nomenclatura": "200.09.14.20", "Categoría": "VIATICOS TI", "Enero": 0, "Febrero": 0, "Marzo": 583, "Abril": 211, "Mayo": 0, "Junio": 462, "Julio": 0, "Agosto": 0, "Septiembre": 4, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 1071, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 444, "Diciembre": 1595}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.12.08", "Categoría": "AUDIO Y VIDEO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 449, "Agosto": 0, "Septiembre": 0, "Octubre": 7000, "Noviembre": 7376, "Diciembre": 0}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 3000, "Noviembre": 2904, "Diciembre": 0}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 350, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 298}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 156}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 627, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 824, "Septiembre": 0, "Octubre": 0, "Noviembre": 2288, "Diciembre": 0}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 300}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 931, "Febrero": 931, "Marzo": 931, "Abril": 931, "Mayo": 931, "Junio": 487, "Julio": 1375, "Agosto": 931, "Septiembre": 444, "Octubre": 1418, "Noviembre": 931, "Diciembre": 931}, {"Empresa": "Aguilar Arimany, Asociados Consultores, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 300}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 2173, "Junio": 0, "Julio": 901, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 3947, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 682, "Julio": 327, "Agosto": 0, "Septiembre": 0, "Octubre": 1104, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 192, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 1500, "Noviembre": 0, "Diciembre": 671}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 3296, "Febrero": 3231, "Marzo": 3231, "Abril": 3231, "Mayo": 3231, "Junio": 0, "Julio": 6462, "Agosto": 3231, "Septiembre": 3231, "Octubre": 3231, "Noviembre": 3231, "Diciembre": 6394}, {"Empresa": "Transporte de Energia Electrica del Norte, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 2951, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 1071, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 1715}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 4763, "Marzo": 1782, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 449, "Agosto": 60, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 13331}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 4548}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 350, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 298}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 156}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 8496}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 2681, "Febrero": 2681, "Marzo": 2681, "Abril": 2586, "Mayo": 2582, "Junio": 2576, "Julio": 2579, "Agosto": 2576, "Septiembre": 2324, "Octubre": 2582, "Noviembre": 2582, "Diciembre": 2857}, {"Empresa": "Hidroelectrica Raaxhá, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 1071, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 3755}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.12.08", "Categoría": "AUDIO Y VIDEO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 455, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 3782, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 3000, "Noviembre": 4903, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 1125, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 1575, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 350, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 598}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 756}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 490, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 3000, "Noviembre": 1514, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.13.05", "Categoría": "HERRAMIENTAS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 300}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 4156, "Febrero": 4156, "Marzo": 4156, "Abril": 4156, "Mayo": 4156, "Junio": 243, "Julio": 6783, "Agosto": 3513, "Septiembre": 3270, "Octubre": 5042, "Noviembre": 4156, "Diciembre": 4829}, {"Empresa": "Oxec II, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 1071, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.12.08", "Categoría": "AUDIO Y VIDEO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 5458, "Mayo": 430, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 2644}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 456}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 160}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 5384, "Junio": 0, "Julio": 2674, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.13.05", "Categoría": "HERRAMIENTAS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 427, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 747, "Febrero": 747, "Marzo": 747, "Abril": 1119, "Mayo": 991, "Junio": 614, "Julio": 1494, "Agosto": 991, "Septiembre": 504, "Octubre": 1486, "Noviembre": 995, "Diciembre": 995}, {"Empresa": "Oxec, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 984, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.12.01", "Categoría": "EQUIPO DE COMPUTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 1071, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 1571}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.12.10", "Categoría": "TELECOMUNICACIONES", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 449, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 5731}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.12.11", "Categoría": "INFRAESTRUCTURA", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.13.01", "Categoría": "REPUESTOS Y COMPONENTES - IT", "Enero": 0, "Febrero": 0, "Marzo": 350, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 106}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.13.02", "Categoría": "SUMINISTROS Y ACCESORIOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 156}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.13.04", "Categoría": "SERVICIOS EXTERNOS - IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 2004}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.14.01", "Categoría": "REPARACIÓN Y MANTENIMIENTO EQUIPO IT", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 300}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.15.01", "Categoría": "CONTRATO Y ENLACES", "Enero": 1309, "Febrero": 1310, "Marzo": 1309, "Abril": 1309, "Mayo": 1308, "Junio": 602, "Julio": 1655, "Agosto": 1666, "Septiembre": 1064, "Octubre": 1904, "Noviembre": 1484, "Diciembre": 1484}, {"Empresa": "Visión de Aguila, S.A.", "Nomenclatura": "200.01.06.15.02", "Categoría": "SOFTWARE Y LICENCIAMIENTO", "Enero": 0, "Febrero": 0, "Marzo": 0, "Abril": 0, "Mayo": 0, "Junio": 0, "Julio": 0, "Agosto": 0, "Septiembre": 0, "Octubre": 0, "Noviembre": 0, "Diciembre": 0}];
+
+function fmt(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+
+// Clasificación automática OPEX/CAPEX basada en nomenclatura
+function clasificarTipo(nomenclatura) {
+    const nom = String(nomenclatura).toUpperCase().trim();
+    // CAPEX: Nomenclaturas 200.01.06.12.* (Equipos, Hardware, Infraestructura TI)
+    if (nom.startsWith('200.01.06.12')) {
+        return 'CAPEX';
+    }
+    // OPEX: Todo lo demás (Servicios, Mantenimiento, Licencias, etc)
+    return 'OPEX';
+}
+
+// Manejo de carga de archivo Excel
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileStatus = document.getElementById('fileStatus');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const noDataState = document.getElementById('noDataState');
+    const dashboardContent = document.getElementById('dashboardContent');
+    const filtersPanel = document.getElementById('filtersPanel');
+
+    fileStatus.textContent = 'Cargando...';
+    loadingSpinner.classList.add('active');
+    noDataState.style.display = 'none';
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // Leer la primera hoja
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // Convertir a JSON
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            if (jsonData.length === 0) {
+                throw new Error('El archivo está vacío');
+            }
+
+            // Validar estructura básica
+            const requiredColumns = ['Empresa', 'Nomenclatura', 'Categoría', ...MESES];
+            const fileColumns = Object.keys(jsonData[0]);
+            const missingColumns = requiredColumns.filter(col => !fileColumns.includes(col));
+            
+            if (missingColumns.length > 0) {
+                throw new Error(`Faltan columnas requeridas: ${missingColumns.join(', ')}`);
+            }
+
+            // Verificar si tiene columna Tipo (opcional)
+            const hasTipoColumn = fileColumns.includes('Tipo');
+            console.log('Archivo tiene columna Tipo:', hasTipoColumn);
+
+            // Verificar si tiene columna Presupuesto (opcional)
+            const hasPresupuestoColumn = fileColumns.includes('Presupuesto');
+            console.log('Archivo tiene columna Presupuesto:', hasPresupuestoColumn);
+
+            // Asignar datos
+            DATA = jsonData;
+
+            // Ocultar sección de carga y expandir dashboard
+            const uploadSection = document.querySelector('.file-upload-section');
+            const dashboardContainer = document.querySelector('.dashboard-container');
+            uploadSection.classList.add('hidden');
+            dashboardContainer.classList.add('expanded');
+
+            // Actualizar UI
+            fileStatus.textContent = `✓ ${file.name} (${DATA.length} registros)`;
+            fileStatus.classList.add('loaded');
+            loadingSpinner.classList.remove('active');
+            dashboardContent.style.display = 'block';
+            filtersPanel.style.display = 'block';
+
+            // Inicializar filtros y dashboard
+            initializeFilters();
+            initializeMonthFilters();
+            updateDashboard();
+
+        } catch (error) {
+            console.error('Error al procesar el archivo:', error);
+            fileStatus.textContent = '✗ Error al cargar el archivo';
+            fileStatus.style.background = '#f44336';
+            loadingSpinner.classList.remove('active');
+            noDataState.style.display = 'flex';
+            alert('Error al procesar el archivo: ' + error.message + '\n\nAsegúrate de que el archivo tenga las columnas correctas: Empresa, Nomenclatura, Categoría, y los 12 meses del año.');
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+function initializeFilters() {
+    // Empresas
+    const empresas = [...new Set(DATA.map(r => r.Empresa))].sort();
+    const selEmp = document.getElementById('empresaFilter');
+    selEmp.innerHTML = '<option value="Todas">Todas las empresas</option>';
+    empresas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e.substring(0, 35) + (e.length > 35 ? '...' : '');
+        selEmp.appendChild(opt);
+    });
+
+    // Categorías
+    const categorias = [...new Set(DATA.map(r => r.Categoría))].sort();
+    const selCat = document.getElementById('categoriaFilter');
+    selCat.innerHTML = '<option value="Todas">Todas las categorías</option>';
+    categorias.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        selCat.appendChild(opt);
+    });
+}
+
+function initializeMonthFilters() {
+    // Filtros de meses para análisis
+    const container = document.getElementById('monthFilters');
+    container.innerHTML = '';
+    MESES.forEach(mes => {
+        const div = document.createElement('div');
+        div.className = 'month-checkbox active';
+        div.innerHTML = `<input type="checkbox" id="mes_${mes}" checked> ${mes.substring(0, 3)}`;
+        div.onclick = () => toggleMonth(mes);
+        container.appendChild(div);
+    });
+    
+    // Filtros de meses ejecutados (para % ejecución)
+    const containerEjecutados = document.getElementById('monthEjecutadosFilters');
+    containerEjecutados.innerHTML = '';
+    MESES.forEach(mes => {
+        const isEjecutado = mesesEjecutados.has(mes);
+        const div = document.createElement('div');
+        div.className = isEjecutado ? 'month-checkbox active' : 'month-checkbox';
+        div.innerHTML = `<input type="checkbox" id="mesEjec_${mes}" ${isEjecutado ? 'checked' : ''}> ${mes.substring(0, 3)}`;
+        div.onclick = () => toggleMesEjecutado(mes);
+        containerEjecutados.appendChild(div);
+    });
+}
+
+function toggleMesEjecutado(mes) {
+    const checkbox = document.getElementById('mesEjec_' + mes);
+    const div = checkbox.parentElement;
+    if (mesesEjecutados.has(mes)) {
+        mesesEjecutados.delete(mes);
+        checkbox.checked = false;
+        div.classList.remove('active');
+    } else {
+        mesesEjecutados.add(mes);
+        checkbox.checked = true;
+        div.classList.add('active');
+    }
+    updateDashboard();
+}
+
+function toggleMonth(mes) {
+    const checkbox = document.getElementById('mes_' + mes);
+    const div = checkbox.parentElement;
+    if (selectedMonths.has(mes)) {
+        selectedMonths.delete(mes);
+        checkbox.checked = false;
+        div.classList.remove('active');
+    } else {
+        selectedMonths.add(mes);
+        checkbox.checked = true;
+        div.classList.add('active');
+    }
+    updateDashboard();
+}
+
+function getFiltered() {
+    const empFilt = document.getElementById('empresaFilter').value;
+    const catFilt = document.getElementById('categoriaFilter').value;
+    return DATA.filter(r => {
+        const empMatch = empFilt === 'Todas' || r.Empresa === empFilt;
+        const catMatch = catFilt === 'Todas' || r.Categoría === catFilt;
+        return empMatch && catMatch;
+    });
+}
+
+function calculateTotal(row) {
+    let total = 0;
+    selectedMonths.forEach(mes => { total += row[mes] || 0; });
+    return total;
+}
+
+// Calcular total solo de meses ejecutados (para % de ejecución)
+function calculateTotalEjecutado(row) {
+    let total = 0;
+    mesesEjecutados.forEach(mes => { total += row[mes] || 0; });
+    return total;
+}
+
+// Función para calcular línea de tendencia (regresión lineal)
+function calcularTendencia(data) {
+    const n = data.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    
+    for (let i = 0; i < n; i++) {
+        sumX += i;
+        sumY += data[i];
+        sumXY += i * data[i];
+        sumXX += i * i;
+    }
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    return data.map((_, i) => slope * i + intercept);
+}
+
+function updateKPIs() {
+    const d = getFiltered();
+    const hasPresupuesto = DATA.length > 0 && DATA[0].hasOwnProperty('Presupuesto');
+    
+    // KPI 1: Total Presupuestado (presupuesto anual total)
+    let totalPresupuesto = 0;
+    if (hasPresupuesto) {
+        totalPresupuesto = d.reduce((s, r) => s + (r.Presupuesto || 0), 0);
+    } else {
+        // Si no hay presupuesto, mostrar la suma de los 12 meses
+        totalPresupuesto = d.reduce((s, r) => {
+            let suma = 0;
+            MESES.forEach(mes => { suma += r[mes] || 0; });
+            return s + suma;
+        }, 0);
+    }
+    document.getElementById('kpi_total').textContent = fmt(totalPresupuesto);
+
+    // KPI 2: Promedio mensual (basado en meses seleccionados para análisis)
+    const totalMesesSeleccionados = d.reduce((s, r) => s + calculateTotal(r), 0);
+    const numMeses = selectedMonths.size || 1;
+    const promedio = totalMesesSeleccionados / numMeses;
+    document.getElementById('kpi_promedio').textContent = fmt(Math.round(promedio));
+
+    // KPI 3: Categoría Principal
+    const byCat = {};
+    d.forEach(r => {
+        if (!byCat[r.Categoría]) byCat[r.Categoría] = 0;
+        byCat[r.Categoría] += calculateTotal(r);
+    });
+    const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+    if (topCat) {
+        document.getElementById('kpi_categoria').textContent = topCat[0].substring(0, 22) + (topCat[0].length > 22 ? '...' : '');
+        document.getElementById('kpi_categoria_valor').textContent = fmt(topCat[1]);
+    }
+
+    // KPI 4: Empresas Activas
+    const empresas = new Set(d.map(r => r.Empresa)).size;
+    document.getElementById('kpi_empresas').textContent = empresas;
+
+    // KPI 5: % de Ejecución = (Total Ejecutado / Total Presupuestado) * 100
+    let totalEjecutado = d.reduce((s, r) => s + calculateTotalEjecutado(r), 0);
+    let porcentajeEjecucion = 0;
+    
+    if (totalPresupuesto > 0) {
+        porcentajeEjecucion = (totalEjecutado / totalPresupuesto) * 100;
+    }
+    
+    document.getElementById('kpi_porcentaje').textContent = porcentajeEjecucion.toFixed(1) + '%';
+
+    // Calcular OPEX y CAPEX usando clasificación automática
+    let totalOpex = 0;
+    let totalCapex = 0;
+    
+    d.forEach(r => {
+        const tipo = clasificarTipo(r.Nomenclatura);
+        const valor = calculateTotal(r);
+        if (tipo === 'OPEX') {
+            totalOpex += valor;
+        } else if (tipo === 'CAPEX') {
+            totalCapex += valor;
+        }
+    });
+    
+    document.getElementById('kpi_opex').textContent = fmt(totalOpex);
+    document.getElementById('kpi_capex').textContent = fmt(totalCapex);
+}
+
+function updateCharts() {
+    const d = getFiltered();
+
+    // Línea con tendencia y promedio
+    const monthlyData = MESES.map(m => ({ mes: m, total: selectedMonths.has(m) ? d.reduce((s, r) => s + (r[m] || 0), 0) : 0 }));
+    
+    // Calcular promedio de los meses seleccionados
+    const selectedData = monthlyData.filter(m => selectedMonths.has(m.mes));
+    const promedio = selectedData.length > 0 
+        ? selectedData.reduce((sum, m) => sum + m.total, 0) / selectedData.length 
+        : 0;
+    const promedioArray = MESES.map(() => promedio);
+    
+    // Calcular línea de tendencia (regresión lineal simple)
+    const tendenciaArray = calcularTendencia(monthlyData.map(m => m.total));
+    
+    if (charts.line) charts.line.destroy();
+    charts.line = new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: MESES.map(m => m.substring(0, 3)),
+            datasets: [{
+                label: 'Ejecución USD',
+                data: monthlyData.map(m => m.total),
+                borderColor: ERC_COLORS[0],
+                backgroundColor: 'rgba(30,136,229,0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                order: 1
+            }, {
+                label: 'Promedio',
+                data: promedioArray,
+                borderColor: '#FF6B6B',
+                borderWidth: 2,
+                borderDash: [10, 5],
+                pointRadius: 0,
+                fill: false,
+                order: 2
+            }, {
+                label: 'Tendencia',
+                data: tendenciaArray,
+                borderColor: '#4ECDC4',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 0,
+                fill: false,
+                order: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 15,
+                        font: { size: 11 },
+                        padding: 15
+                    }
+                } 
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    // Barras empresas
+    const byEmp = {};
+    d.forEach(r => {
+        if (!byEmp[r.Empresa]) byEmp[r.Empresa] = 0;
+        byEmp[r.Empresa] += calculateTotal(r);
+    });
+    const topEmps = Object.entries(byEmp).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: topEmps.map(e => e[0].substring(0, 12) + '...'),
+            datasets: [{
+                label: 'Total USD',
+                data: topEmps.map(e => e[1]),
+                backgroundColor: ERC_COLORS
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    // Dona categorías
+    const byCat = {};
+    d.forEach(r => {
+        if (!byCat[r.Categoría]) byCat[r.Categoría] = 0;
+        byCat[r.Categoría] += calculateTotal(r);
+    });
+    const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    if (charts.pie) charts.pie.destroy();
+    charts.pie = new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catData.map(c => c[0]),
+            datasets: [{ data: catData.map(c => c[1]), backgroundColor: ERC_COLORS }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+    });
+
+    // Barras mensuales
+    const selectedMonthsData = Array.from(selectedMonths).map(m => ({ mes: m, total: d.reduce((s, r) => s + (r[m] || 0), 0) }));
+    if (charts.barMonth) charts.barMonth.destroy();
+    charts.barMonth = new Chart(document.getElementById('barChartMonthly'), {
+        type: 'bar',
+        data: {
+            labels: selectedMonthsData.map(m => m.mes.substring(0, 3)),
+            datasets: [{
+                label: 'Ejecutado USD',
+                data: selectedMonthsData.map(m => m.total),
+                backgroundColor: ERC_COLORS[2]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+}
+
+function updateTable() {
+    const d = getFiltered();
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+
+    const hasPresupuesto = DATA.length > 0 && DATA[0].hasOwnProperty('Presupuesto');
+
+    const dataWithCalc = d.map(r => {
+        // Calcular presupuesto: si existe columna usar esa, sino sumar los 12 meses
+        let presupuesto = 0;
+        if (hasPresupuesto) {
+            presupuesto = r.Presupuesto || 0;
+        } else {
+            // Sumar los 12 meses como presupuesto
+            MESES.forEach(mes => { presupuesto += r[mes] || 0; });
+        }
+        
+        return {
+            ...r, 
+            calcTotal: calculateTotal(r),
+            calcEjecutado: calculateTotalEjecutado(r),
+            presupuestoTotal: presupuesto
+        };
+    })
+        .filter(r => r.calcTotal > 0)
+        .sort((a, b) => b.calcTotal - a.calcTotal)
+        .slice(0, 15);
+
+    dataWithCalc.forEach(r => {
+        const status = r.calcTotal > 30000 ? 'high' : r.calcTotal > 10000 ? 'medium' : 'low';
+        const statusText = r.calcTotal > 30000 ? 'Alto' : r.calcTotal > 10000 ? 'Medio' : 'Bajo';
+        
+        // Calcular porcentaje de ejecución: (Ejecutado / Presupuesto Total) * 100
+        let porcentajeEjec = 0;
+        let progressClass = 'high';
+        
+        if (r.presupuestoTotal > 0) {
+            porcentajeEjec = (r.calcEjecutado / r.presupuestoTotal) * 100;
+            if (porcentajeEjec < 50) progressClass = 'low';
+            else if (porcentajeEjec < 80) progressClass = 'medium';
+            else progressClass = 'high';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${r.Empresa.substring(0, 28)}${r.Empresa.length > 28 ? '...' : ''}</td>
+            <td>${r.Categoría}</td>
+            <td>${r.Nomenclatura}</td>
+            <td class="currency-cell">${fmt(r.presupuestoTotal)}</td>
+            <td class="currency-cell">${fmt(r.calcEjecutado)}</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar ${progressClass}" style="width: ${Math.min(porcentajeEjec, 100)}%">
+                        <span class="progress-text">${porcentajeEjec.toFixed(1)}%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-${status}">${statusText}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('empresaFilter').value = 'Todas';
+    document.getElementById('categoriaFilter').value = 'Todas';
+    
+    // Reset meses para análisis (todos)
+    MESES.forEach(mes => {
+        selectedMonths.add(mes);
+        document.getElementById('mes_' + mes).checked = true;
+        document.getElementById('mes_' + mes).parentElement.classList.add('active');
+    });
+    
+    // Reset meses ejecutados (hasta Octubre por defecto)
+    mesesEjecutados.clear();
+    ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre'].forEach(mes => {
+        mesesEjecutados.add(mes);
+        const elem = document.getElementById('mesEjec_' + mes);
+        if (elem) {
+            elem.checked = true;
+            elem.parentElement.classList.add('active');
+        }
+    });
+    ['Noviembre', 'Diciembre'].forEach(mes => {
+        const elem = document.getElementById('mesEjec_' + mes);
+        if (elem) {
+            elem.checked = false;
+            elem.parentElement.classList.remove('active');
+        }
+    });
+    
+    updateDashboard();
+}
+
+function updateDashboard() {
+    if (DATA.length === 0) return;
+    updateKPIs();
+    updateCharts();
+    updateTable();
+    
+    // Habilitar botón de exportar cuando hay datos
+    document.getElementById('exportBtn').disabled = false;
+}
+
+function exportStaticVersion() {
+    if (DATA.length === 0) {
+        alert('⚠️ No hay datos cargados para exportar');
+        return;
+    }
+
+    // Mostrar loading
+    const exportBtn = document.getElementById('exportBtn');
+    const originalText = exportBtn.innerHTML;
+    exportBtn.innerHTML = '⏳ Generando...';
+    exportBtn.disabled = true;
+
+    setTimeout(() => {
+        try {
+            // Crear una copia del HTML actual
+            const htmlTemplate = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Presupuesto TI 2025 - ERC Capital Corp [SOLO LECTURA]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"><\/script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --erc-blue-dark: #0B5EA8;
+            --erc-blue: #1E88E5;
+            --erc-teal: #26A69A;
+            --erc-green-light: #66BB6A;
+            --erc-green: #4CAF50;
+            --erc-gray: #424242;
+            --erc-gray-light: #757575;
+        }
+
+        .powerbi-header {
+            background: white;
+            border-bottom: 3px solid var(--erc-teal);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .powerbi-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-text h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 2px;
+        }
+
+        .title-text p {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+        }
+
+        .readonly-badge {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: calc(100vh - 61px);
+        }
+
+        .filters-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+
+        .filter-section h3 {
+            font-size: 13px;
+            color: var(--erc-gray);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-item {
+            margin-bottom: 16px;
+        }
+
+        .filter-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-item select:hover {
+            border-color: var(--erc-teal);
+        }
+
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--erc-blue);
+            box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+        }
+
+        .month-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .month-checkbox {
+            padding: 8px 10px;
+            text-align: center;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            background: white;
+        }
+
+        .month-checkbox:hover {
+            background: #f5f5f5;
+            border-color: var(--erc-teal);
+        }
+
+        .month-checkbox.active {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            border-color: var(--erc-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .month-checkbox input {
+            margin-right: 6px;
+        }
+
+        .reset-filters-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--erc-teal);
+            color: var(--erc-teal);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-filters-btn:hover {
+            background: var(--erc-teal);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(38, 166, 154, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f3f2f1;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal));
+        }
+
+        .kpi-card.opex::before {
+            background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+        }
+
+        .kpi-card.capex::before {
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+        }
+
+        .kpi-card.opex .kpi-value {
+            color: #FF6B6B;
+        }
+
+        .kpi-card.capex .kpi-value {
+            color: #4ECDC4;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--erc-gray);
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtitle {
+            font-size: 11px;
+            color: var(--erc-gray-light);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-card h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-container {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-container h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            color: var(--erc-gray);
+        }
+
+        .currency-cell {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-high {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-low {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.3s;
+            position: relative;
+        }
+
+        .progress-bar.high {
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        }
+
+        .progress-bar.medium {
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+        }
+
+        .progress-bar.low {
+            background: linear-gradient(90deg, #F44336, #EF5350);
+        }
+
+        .progress-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; height: auto; }
+            .filters-panel { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="powerbi-header">
+        <div class="powerbi-title">
+            <div class="title-text">
+                <h1>Dashboard Presupuesto TI 2025</h1>
+                <p>Análisis de Ejecución Presupuestaria - Tecnología de la Información</p>
+            </div>
+        </div>
+        <div class="readonly-badge">🔒 SOLO LECTURA</div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="filters-panel">
+            <div class="filter-section">
+                <h3>📊 Filtros</h3>
+                
+                <div class="filter-item">
+                    <label>Empresa</label>
+                    <select id="empresaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las empresas</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Categoría</label>
+                    <select id="categoriaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las categorías</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>📅 Meses para Análisis</h3>
+                <div class="month-filter-grid" id="monthFilters"></div>
+            </div>
+
+            <div class="filter-section" style="border-left: 3px solid #9C27B0; padding-left: 12px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; padding: 12px;">
+                <h3 style="font-size: 11px; color: #9C27B0;">✅ MESES EJECUTADOS</h3>
+                <p style="font-size: 10px; color: var(--erc-gray-light); margin-bottom: 8px;">Meses cerrados contablemente</p>
+                <div class="month-filter-grid" id="monthEjecutadosFilters"></div>
+            </div>
+
+            <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+        </div>
+
+        <div class="main-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Presupuesto Total</div>
+                    <div class="kpi-value" id="kpi1">$0</div>
+                    <div class="kpi-subtitle">Año 2025</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Ejecutado</div>
+                    <div class="kpi-value" id="kpi2">$0</div>
+                    <div class="kpi-subtitle">Meses seleccionados</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Por Ejecutar</div>
+                    <div class="kpi-value" id="kpi3">$0</div>
+                    <div class="kpi-subtitle">Restante</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">% Ejecución</div>
+                    <div class="kpi-value" id="kpi4">0%</div>
+                    <div class="kpi-subtitle">Avance</div>
+                </div>
+                <div class="kpi-card opex">
+                    <div class="kpi-label">OPEX</div>
+                    <div class="kpi-value" id="kpiOpex">$0</div>
+                    <div class="kpi-subtitle">Gasto Operativo</div>
+                </div>
+                <div class="kpi-card capex">
+                    <div class="kpi-label">CAPEX</div>
+                    <div class="kpi-value" id="kpiCapex">$0</div>
+                    <div class="kpi-subtitle">Inversión</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Proyectos</div>
+                    <div class="kpi-value" id="kpiProyectos">0</div>
+                    <div class="kpi-subtitle">Total activos</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📈 Evolución Mensual del Gasto</h3>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🏢 Top 5 Empresas por Gasto</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 Distribución por Categoría</h3>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📊 Gasto por Mes (Meses Seleccionados)</h3>
+                    <div class="chart-container">
+                        <canvas id="barChartMonthly"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>📋 Top 15 Proyectos por Gasto Total</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Categoría</th>
+                            <th>Nomenclatura</th>
+                            <th>Presupuesto</th>
+                            <th>Ejecutado</th>
+                            <th>% Ejecución</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const ERC_COLORS = ['#1E88E5', '#26A69A', '#66BB6A', '#FFA726', '#FF7043', '#AB47BC', '#42A5F5'];
+
+// DATOS EMBEBIDOS
+const DATA = ${JSON.stringify(DATA)};
+
+// Estado de filtros embebido
+const selectedMonths = new Set(${JSON.stringify(Array.from(selectedMonths))});
+const mesesEjecutados = new Set(${JSON.stringify(Array.from(mesesEjecutados))});
+
+const charts = { line: null, bar: null, pie: null, barMonth: null };
+
+function initDashboard() {
+    populateFilters();
+    createMonthFilters();
+    updateDashboard();
+}
+
+function populateFilters() {
+    const empresas = [...new Set(DATA.map(r => r.Empresa))].sort();
+    const categorias = [...new Set(DATA.map(r => r.Categoría))].sort();
+    
+    const empSelect = document.getElementById('empresaFilter');
+    empresas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e;
+        empSelect.appendChild(opt);
+    });
+
+    const catSelect = document.getElementById('categoriaFilter');
+    categorias.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        catSelect.appendChild(opt);
+    });
+}
+
+function createMonthFilters() {
+    const container = document.getElementById('monthFilters');
+    MESES.forEach(mes => {
+        const label = document.createElement('label');
+        label.className = 'month-checkbox' + (selectedMonths.has(mes) ? ' active' : '');
+        label.innerHTML = \`
+            <input type="checkbox" id="mes_\${mes}" \${selectedMonths.has(mes) ? 'checked' : ''} onchange="toggleMonth('\${mes}')">
+            \${mes.substring(0, 3)}
+        \`;
+        container.appendChild(label);
+    });
+
+    const containerEjec = document.getElementById('monthEjecutadosFilters');
+    MESES.forEach(mes => {
+        const label = document.createElement('label');
+        label.className = 'month-checkbox' + (mesesEjecutados.has(mes) ? ' active' : '');
+        label.innerHTML = \`
+            <input type="checkbox" id="mesEjec_\${mes}" \${mesesEjecutados.has(mes) ? 'checked' : ''} onchange="toggleMesEjecutado('\${mes}')">
+            \${mes.substring(0, 3)}
+        \`;
+        containerEjec.appendChild(label);
+    });
+}
+
+function toggleMonth(mes) {
+    const checkbox = document.getElementById('mes_' + mes);
+    const label = checkbox.parentElement;
+    
+    if (checkbox.checked) {
+        selectedMonths.add(mes);
+        label.classList.add('active');
+    } else {
+        selectedMonths.delete(mes);
+        label.classList.remove('active');
+    }
+    updateDashboard();
+}
+
+function toggleMesEjecutado(mes) {
+    const checkbox = document.getElementById('mesEjec_' + mes);
+    const label = checkbox.parentElement;
+    
+    if (checkbox.checked) {
+        mesesEjecutados.add(mes);
+        label.classList.add('active');
+    } else {
+        mesesEjecutados.delete(mes);
+        label.classList.remove('active');
+    }
+    updateDashboard();
+}
+
+function getFiltered() {
+    const emp = document.getElementById('empresaFilter').value;
+    const cat = document.getElementById('categoriaFilter').value;
+    return DATA.filter(r => 
+        (emp === 'Todas' || r.Empresa === emp) &&
+        (cat === 'Todas' || r.Categoría === cat)
+    );
+}
+
+function calculateTotal(row) {
+    return Array.from(selectedMonths).reduce((sum, mes) => sum + (row[mes] || 0), 0);
+}
+
+function calculateTotalEjecutado(row) {
+    return Array.from(mesesEjecutados).reduce((sum, mes) => sum + (row[mes] || 0), 0);
+}
+
+const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function updateKPIs() {
+    const d = getFiltered();
+    
+    const hasPresupuesto = d.length > 0 && d[0].hasOwnProperty('Presupuesto');
+    let presupuestoTotal = 0;
+    if (hasPresupuesto) {
+        presupuestoTotal = d.reduce((s, r) => s + (r.Presupuesto || 0), 0);
+    } else {
+        d.forEach(r => {
+            MESES.forEach(mes => { presupuestoTotal += r[mes] || 0; });
+        });
+    }
+    
+    const ejecutado = d.reduce((s, r) => s + calculateTotalEjecutado(r), 0);
+    const porEjecutar = presupuestoTotal - ejecutado;
+    const pctEjec = presupuestoTotal > 0 ? ((ejecutado / presupuestoTotal) * 100).toFixed(1) : 0;
+    
+    const opex = d.filter(r => r.Tipo === 'OPEX').reduce((s, r) => s + calculateTotal(r), 0);
+    const capex = d.filter(r => r.Tipo === 'CAPEX').reduce((s, r) => s + calculateTotal(r), 0);
+    
+    document.getElementById('kpi1').textContent = fmt(presupuestoTotal);
+    document.getElementById('kpi2').textContent = fmt(ejecutado);
+    document.getElementById('kpi3').textContent = fmt(porEjecutar);
+    document.getElementById('kpi4').textContent = pctEjec + '%';
+    document.getElementById('kpiOpex').textContent = fmt(opex);
+    document.getElementById('kpiCapex').textContent = fmt(capex);
+    document.getElementById('kpiProyectos').textContent = d.length;
+}
+
+function updateCharts() {
+    const d = getFiltered();
+    
+    const monthlyData = MESES.map(mes => ({
+        mes,
+        total: d.reduce((s, r) => s + (r[mes] || 0), 0)
+    }));
+
+    if (charts.line) charts.line.destroy();
+    charts.line = new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(m => m.mes.substring(0, 3)),
+            datasets: [{
+                label: 'Gasto Mensual USD',
+                data: monthlyData.map(m => m.total),
+                borderColor: ERC_COLORS[0],
+                backgroundColor: ERC_COLORS[0] + '20',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 15,
+                        font: { size: 11 },
+                        padding: 15
+                    }
+                } 
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    const byEmp = {};
+    d.forEach(r => {
+        if (!byEmp[r.Empresa]) byEmp[r.Empresa] = 0;
+        byEmp[r.Empresa] += calculateTotal(r);
+    });
+    const topEmps = Object.entries(byEmp).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: topEmps.map(e => e[0].substring(0, 12) + '...'),
+            datasets: [{
+                label: 'Total USD',
+                data: topEmps.map(e => e[1]),
+                backgroundColor: ERC_COLORS
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    const byCat = {};
+    d.forEach(r => {
+        if (!byCat[r.Categoría]) byCat[r.Categoría] = 0;
+        byCat[r.Categoría] += calculateTotal(r);
+    });
+    const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    if (charts.pie) charts.pie.destroy();
+    charts.pie = new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catData.map(c => c[0]),
+            datasets: [{ data: catData.map(c => c[1]), backgroundColor: ERC_COLORS }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+    });
+
+    const selectedMonthsData = Array.from(selectedMonths).map(m => ({ mes: m, total: d.reduce((s, r) => s + (r[m] || 0), 0) }));
+    if (charts.barMonth) charts.barMonth.destroy();
+    charts.barMonth = new Chart(document.getElementById('barChartMonthly'), {
+        type: 'bar',
+        data: {
+            labels: selectedMonthsData.map(m => m.mes.substring(0, 3)),
+            datasets: [{
+                label: 'Ejecutado USD',
+                data: selectedMonthsData.map(m => m.total),
+                backgroundColor: ERC_COLORS[2]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+}
+
+function updateTable() {
+    const d = getFiltered();
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+
+    const hasPresupuesto = DATA.length > 0 && DATA[0].hasOwnProperty('Presupuesto');
+
+    const dataWithCalc = d.map(r => {
+        let presupuesto = 0;
+        if (hasPresupuesto) {
+            presupuesto = r.Presupuesto || 0;
+        } else {
+            MESES.forEach(mes => { presupuesto += r[mes] || 0; });
+        }
+        
+        return {
+            ...r, 
+            calcTotal: calculateTotal(r),
+            calcEjecutado: calculateTotalEjecutado(r),
+            presupuestoTotal: presupuesto
+        };
+    })
+        .filter(r => r.calcTotal > 0)
+        .sort((a, b) => b.calcTotal - a.calcTotal)
+        .slice(0, 15);
+
+    dataWithCalc.forEach(r => {
+        const status = r.calcTotal > 30000 ? 'high' : r.calcTotal > 10000 ? 'medium' : 'low';
+        const statusText = r.calcTotal > 30000 ? 'Alto' : r.calcTotal > 10000 ? 'Medio' : 'Bajo';
+        
+        let porcentajeEjec = 0;
+        let progressClass = 'high';
+        
+        if (r.presupuestoTotal > 0) {
+            porcentajeEjec = (r.calcEjecutado / r.presupuestoTotal) * 100;
+            if (porcentajeEjec < 50) progressClass = 'low';
+            else if (porcentajeEjec < 80) progressClass = 'medium';
+            else progressClass = 'high';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = \`
+            <td>\${r.Empresa.substring(0, 28)}\${r.Empresa.length > 28 ? '...' : ''}</td>
+            <td>\${r.Categoría}</td>
+            <td>\${r.Nomenclatura}</td>
+            <td class="currency-cell">\${fmt(r.presupuestoTotal)}</td>
+            <td class="currency-cell">\${fmt(r.calcEjecutado)}</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar \${progressClass}" style="width: \${Math.min(porcentajeEjec, 100)}%">
+                        <span class="progress-text">\${porcentajeEjec.toFixed(1)}%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-\${status}">\${statusText}</span></td>
+        \`;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('empresaFilter').value = 'Todas';
+    document.getElementById('categoriaFilter').value = 'Todas';
+    
+    MESES.forEach(mes => {
+        selectedMonths.add(mes);
+        document.getElementById('mes_' + mes).checked = true;
+        document.getElementById('mes_' + mes).parentElement.classList.add('active');
+    });
+    
+    updateDashboard();
+}
+
+function updateDashboard() {
+    updateKPIs();
+    updateCharts();
+    updateTable();
+}
+
+window.onload = initDashboard;
+    <\/script>
+</body>
+</html>`;
+
+            // Crear blob y descargar
+            const blob = new Blob([htmlTemplate], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Dashboard_TI_2025_COMPARTIBLE.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Restaurar botón
+            exportBtn.innerHTML = '✅ Exportado exitosamente!';
+            setTimeout(() => {
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Error al exportar:', error);
+            alert('❌ Error al generar archivo para compartir');
+            exportBtn.innerHTML = originalText;
+            exportBtn.disabled = false;
+        }
+    }, 500);
+}
+
+// Inicialización automática para versión VIEW
+window.onload = function() {
+    document.getElementById('exportBtn').disabled = false;
+    populateFilters();
+    createMonthFilters();
+    updateDashboard();
+};
+    </script>
+</body>
+</html>
