@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Presupuesto TI 2025 - ERC Capital Corp [SOLO LECTURA]</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f2f1;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        :root {
+            --erc-blue-dark: #0B5EA8;
+            --erc-blue: #1E88E5;
+            --erc-teal: #26A69A;
+            --erc-green-light: #66BB6A;
+            --erc-green: #4CAF50;
+            --erc-gray: #424242;
+            --erc-gray-light: #757575;
+        }
+
+        .powerbi-header {
+            background: white;
+            border-bottom: 3px solid var(--erc-teal);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .powerbi-title {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .title-text h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--erc-gray);
+            margin-bottom: 2px;
+        }
+
+        .title-text p {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+        }
+
+        .readonly-badge {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: calc(100vh - 61px);
+        }
+
+        .filters-panel {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-section:last-child {
+            border-bottom: none;
+        }
+
+        .filter-section h3 {
+            font-size: 13px;
+            color: var(--erc-gray);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-item {
+            margin-bottom: 16px;
+        }
+
+        .filter-item label {
+            display: block;
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .filter-item select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-item select:hover {
+            border-color: var(--erc-teal);
+        }
+
+        .filter-item select:focus {
+            outline: none;
+            border-color: var(--erc-blue);
+            box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.1);
+        }
+
+        .month-filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .month-checkbox {
+            padding: 8px 10px;
+            text-align: center;
+            border: 1px solid #d4d4d4;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            background: white;
+        }
+
+        .month-checkbox:hover {
+            background: #f5f5f5;
+            border-color: var(--erc-teal);
+        }
+
+        .month-checkbox.active {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            border-color: var(--erc-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .month-checkbox input {
+            margin-right: 6px;
+        }
+
+        .reset-filters-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            border: 2px solid var(--erc-teal);
+            color: var(--erc-teal);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .reset-filters-btn:hover {
+            background: var(--erc-teal);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(38, 166, 154, 0.2);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f3f2f1;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal));
+        }
+
+        .kpi-card.opex::before {
+            background: linear-gradient(90deg, #FF6B6B, #FF8E53);
+        }
+
+        .kpi-card.capex::before {
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+        }
+
+        .kpi-card.opex .kpi-value {
+            color: #FF6B6B;
+        }
+
+        .kpi-card.capex .kpi-value {
+            color: #4ECDC4;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: var(--erc-gray-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--erc-gray);
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtitle {
+            font-size: 11px;
+            color: var(--erc-gray-light);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-card h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .table-container {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        .table-container h3 {
+            font-size: 14px;
+            color: var(--erc-gray);
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, var(--erc-blue) 0%, var(--erc-teal) 100%);
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            color: var(--erc-gray);
+        }
+
+        .currency-cell {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-high {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-low {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: width 0.3s;
+            position: relative;
+        }
+
+        .progress-bar.high {
+            background: linear-gradient(90deg, #4CAF50, #66BB6A);
+        }
+
+        .progress-bar.medium {
+            background: linear-gradient(90deg, #FF9800, #FFB74D);
+        }
+
+        .progress-bar.low {
+            background: linear-gradient(90deg, #F44336, #EF5350);
+        }
+
+        .progress-text {
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; height: auto; }
+            .filters-panel { width: 100%; border-right: none; border-bottom: 1px solid #e0e0e0; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="powerbi-header">
+        <div class="powerbi-title">
+            <div class="title-text">
+                <h1>Dashboard Presupuesto TI 2025</h1>
+                <p>Análisis de Ejecución Presupuestaria - Tecnología de la Información</p>
+            </div>
+        </div>
+        <div class="readonly-badge">🔒 SOLO LECTURA</div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="filters-panel">
+            <div class="filter-section">
+                <h3>📊 Filtros</h3>
+                
+                <div class="filter-item">
+                    <label>Empresa</label>
+                    <select id="empresaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las empresas</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label>Categoría</label>
+                    <select id="categoriaFilter" onchange="updateDashboard()">
+                        <option value="Todas">Todas las categorías</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>📅 Meses para Análisis</h3>
+                <div class="month-filter-grid" id="monthFilters"></div>
+            </div>
+
+            <div class="filter-section" style="border-left: 3px solid #9C27B0; padding-left: 12px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; padding: 12px;">
+                <h3 style="font-size: 11px; color: #9C27B0;">✅ MESES EJECUTADOS</h3>
+                <p style="font-size: 10px; color: var(--erc-gray-light); margin-bottom: 8px;">Meses cerrados contablemente</p>
+                <div class="month-filter-grid" id="monthEjecutadosFilters"></div>
+            </div>
+
+            <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+        </div>
+
+        <div class="main-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Presupuesto Total</div>
+                    <div class="kpi-value" id="kpi1">$0</div>
+                    <div class="kpi-subtitle">Año 2025</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Ejecutado</div>
+                    <div class="kpi-value" id="kpi2">$0</div>
+                    <div class="kpi-subtitle">Meses seleccionados</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Por Ejecutar</div>
+                    <div class="kpi-value" id="kpi3">$0</div>
+                    <div class="kpi-subtitle">Restante</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">% Ejecución</div>
+                    <div class="kpi-value" id="kpi4">0%</div>
+                    <div class="kpi-subtitle">Avance</div>
+                </div>
+                <div class="kpi-card opex">
+                    <div class="kpi-label">OPEX</div>
+                    <div class="kpi-value" id="kpiOpex">$0</div>
+                    <div class="kpi-subtitle">Gasto Operativo</div>
+                </div>
+                <div class="kpi-card capex">
+                    <div class="kpi-label">CAPEX</div>
+                    <div class="kpi-value" id="kpiCapex">$0</div>
+                    <div class="kpi-subtitle">Inversión</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Proyectos</div>
+                    <div class="kpi-value" id="kpiProyectos">0</div>
+                    <div class="kpi-subtitle">Total activos</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📈 Evolución Mensual del Gasto</h3>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🏢 Top 5 Empresas por Gasto</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>🎯 Distribución por Categoría</h3>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📊 Gasto por Mes (Meses Seleccionados)</h3>
+                    <div class="chart-container">
+                        <canvas id="barChartMonthly"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>📋 Top 15 Proyectos por Gasto Total</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Categoría</th>
+                            <th>Nomenclatura</th>
+                            <th>Presupuesto</th>
+                            <th>Ejecutado</th>
+                            <th>% Ejecución</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const ERC_COLORS = ['#1E88E5', '#26A69A', '#66BB6A', '#FFA726', '#FF7043', '#AB47BC', '#42A5F5'];
+
+// DATOS EMBEBIDOS
+const DATA = [{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":615,"Febrero":1238,"Marzo":125,"Abril":7849,"Mayo":448,"Junio":0,"Julio":0,"Agosto":5498,"Septiembre":0,"Octubre":2000,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.12.08","Categoría":"AUDIO Y VIDEO","Enero":0,"Febrero":78,"Marzo":0,"Abril":615,"Mayo":0,"Junio":96,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":4763,"Marzo":0,"Abril":0,"Mayo":8165,"Junio":0,"Julio":256,"Agosto":0,"Septiembre":0,"Octubre":1800,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":1154,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":224,"Febrero":447,"Marzo":539,"Abril":163,"Mayo":286,"Junio":38,"Julio":323,"Agosto":888,"Septiembre":1540,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":823,"Febrero":0,"Marzo":46,"Abril":112,"Mayo":290,"Junio":61,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":346,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":81,"Septiembre":161,"Octubre":1200,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.13.05","Categoría":"HERRAMIENTAS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":58,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":19,"Abril":50,"Mayo":863,"Junio":0,"Julio":19,"Agosto":45,"Septiembre":139,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":2622,"Febrero":2709,"Marzo":2735,"Abril":2868,"Mayo":2663,"Junio":3095,"Julio":2770,"Agosto":2548,"Septiembre":1772,"Octubre":2700,"Noviembre":2700,"Diciembre":2700},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":7006,"Febrero":6007,"Marzo":3005,"Abril":3354,"Mayo":6317,"Junio":3184,"Julio":3146,"Agosto":3018,"Septiembre":64,"Octubre":7000,"Noviembre":3500,"Diciembre":3500},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.06.15.07","Categoría":"CIBERSEGURIDAD","Enero":0,"Febrero":10013,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":4541},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.09.14.20","Categoría":"VIATICOS TI","Enero":0,"Febrero":0,"Marzo":583,"Abril":211,"Mayo":0,"Junio":462,"Julio":0,"Agosto":0,"Septiembre":4,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1071,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":444,"Diciembre":1595},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.12.08","Categoría":"AUDIO Y VIDEO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":449,"Agosto":0,"Septiembre":0,"Octubre":7000,"Noviembre":7376,"Diciembre":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":3000,"Noviembre":2904,"Diciembre":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":350,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":298},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":156},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":627,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":824,"Septiembre":0,"Octubre":0,"Noviembre":2288,"Diciembre":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":300},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":931,"Febrero":931,"Marzo":931,"Abril":931,"Mayo":931,"Junio":487,"Julio":1375,"Agosto":931,"Septiembre":444,"Octubre":1418,"Noviembre":931,"Diciembre":931},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":300},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":2173,"Junio":0,"Julio":901,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":3947,"Noviembre":0,"Diciembre":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":682,"Julio":327,"Agosto":0,"Septiembre":0,"Octubre":1104,"Noviembre":0,"Diciembre":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":192,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":1500,"Noviembre":0,"Diciembre":671},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":3296,"Febrero":3231,"Marzo":3231,"Abril":3231,"Mayo":3231,"Junio":0,"Julio":6462,"Agosto":3231,"Septiembre":3231,"Octubre":3231,"Noviembre":3231,"Diciembre":6394},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":2951,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1071,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1715},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":4763,"Marzo":1782,"Abril":0,"Mayo":0,"Junio":0,"Julio":449,"Agosto":60,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":13331},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":4548},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":350,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":298},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":156},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":8496},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":2681,"Febrero":2681,"Marzo":2681,"Abril":2586,"Mayo":2582,"Junio":2576,"Julio":2579,"Agosto":2576,"Septiembre":2324,"Octubre":2582,"Noviembre":2582,"Diciembre":2857},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1071,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":3755},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.12.08","Categoría":"AUDIO Y VIDEO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":455,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":3782,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":3000,"Noviembre":4903,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":1125,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":1575,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":350,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":598},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":756},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":490,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":3000,"Noviembre":1514,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.13.05","Categoría":"HERRAMIENTAS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":300},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":4156,"Febrero":4156,"Marzo":4156,"Abril":4156,"Mayo":4156,"Junio":243,"Julio":6783,"Agosto":3513,"Septiembre":3270,"Octubre":5042,"Noviembre":4156,"Diciembre":4829},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1071,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.12.08","Categoría":"AUDIO Y VIDEO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":0,"Marzo":0,"Abril":5458,"Mayo":430,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2644},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":456},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":160},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":5384,"Junio":0,"Julio":2674,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.13.05","Categoría":"HERRAMIENTAS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":427,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":747,"Febrero":747,"Marzo":747,"Abril":1119,"Mayo":991,"Junio":614,"Julio":1494,"Agosto":991,"Septiembre":504,"Octubre":1486,"Noviembre":995,"Diciembre":995},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":984,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.12.01","Categoría":"EQUIPO DE COMPUTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1071,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1571},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.12.10","Categoría":"TELECOMUNICACIONES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":449,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":5731},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.12.11","Categoría":"INFRAESTRUCTURA","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.13.01","Categoría":"REPUESTOS Y COMPONENTES - IT","Enero":0,"Febrero":0,"Marzo":350,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":106},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.13.02","Categoría":"SUMINISTROS Y ACCESORIOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":156},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.13.04","Categoría":"SERVICIOS EXTERNOS - IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2004},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.14.01","Categoría":"REPARACIÓN Y MANTENIMIENTO EQUIPO IT","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":300},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.15.01","Categoría":"CONTRATO Y ENLACES","Enero":1309,"Febrero":1310,"Marzo":1309,"Abril":1309,"Mayo":1308,"Junio":602,"Julio":1655,"Agosto":1666,"Septiembre":1064,"Octubre":1904,"Noviembre":1484,"Diciembre":1484},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.06.15.02","Categoría":"SOFTWARE Y LICENCIAMIENTO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0}];
+
+// Estado de filtros embebido
+const selectedMonths = new Set(["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]);
+const mesesEjecutados = new Set(["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre"]);
+
+const charts = { line: null, bar: null, pie: null, barMonth: null };
+
+function initDashboard() {
+    populateFilters();
+    createMonthFilters();
+    updateDashboard();
+}
+
+function populateFilters() {
+    const empresas = [...new Set(DATA.map(r => r.Empresa))].sort();
+    const categorias = [...new Set(DATA.map(r => r.Categoría))].sort();
+    
+    const empSelect = document.getElementById('empresaFilter');
+    empresas.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e;
+        opt.textContent = e;
+        empSelect.appendChild(opt);
+    });
+
+    const catSelect = document.getElementById('categoriaFilter');
+    categorias.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        catSelect.appendChild(opt);
+    });
+}
+
+function createMonthFilters() {
+    const container = document.getElementById('monthFilters');
+    MESES.forEach(mes => {
+        const label = document.createElement('label');
+        label.className = 'month-checkbox' + (selectedMonths.has(mes) ? ' active' : '');
+        label.innerHTML = `
+            <input type="checkbox" id="mes_${mes}" ${selectedMonths.has(mes) ? 'checked' : ''} onchange="toggleMonth('${mes}')">
+            ${mes.substring(0, 3)}
+        `;
+        container.appendChild(label);
+    });
+
+    const containerEjec = document.getElementById('monthEjecutadosFilters');
+    MESES.forEach(mes => {
+        const label = document.createElement('label');
+        label.className = 'month-checkbox' + (mesesEjecutados.has(mes) ? ' active' : '');
+        label.innerHTML = `
+            <input type="checkbox" id="mesEjec_${mes}" ${mesesEjecutados.has(mes) ? 'checked' : ''} onchange="toggleMesEjecutado('${mes}')">
+            ${mes.substring(0, 3)}
+        `;
+        containerEjec.appendChild(label);
+    });
+}
+
+function toggleMonth(mes) {
+    const checkbox = document.getElementById('mes_' + mes);
+    const label = checkbox.parentElement;
+    
+    if (checkbox.checked) {
+        selectedMonths.add(mes);
+        label.classList.add('active');
+    } else {
+        selectedMonths.delete(mes);
+        label.classList.remove('active');
+    }
+    updateDashboard();
+}
+
+function toggleMesEjecutado(mes) {
+    const checkbox = document.getElementById('mesEjec_' + mes);
+    const label = checkbox.parentElement;
+    
+    if (checkbox.checked) {
+        mesesEjecutados.add(mes);
+        label.classList.add('active');
+    } else {
+        mesesEjecutados.delete(mes);
+        label.classList.remove('active');
+    }
+    updateDashboard();
+}
+
+function getFiltered() {
+    const emp = document.getElementById('empresaFilter').value;
+    const cat = document.getElementById('categoriaFilter').value;
+    return DATA.filter(r => 
+        (emp === 'Todas' || r.Empresa === emp) &&
+        (cat === 'Todas' || r.Categoría === cat)
+    );
+}
+
+function calculateTotal(row) {
+    return Array.from(selectedMonths).reduce((sum, mes) => sum + (row[mes] || 0), 0);
+}
+
+function calculateTotalEjecutado(row) {
+    return Array.from(mesesEjecutados).reduce((sum, mes) => sum + (row[mes] || 0), 0);
+}
+
+const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function updateKPIs() {
+    const d = getFiltered();
+    
+    const hasPresupuesto = d.length > 0 && d[0].hasOwnProperty('Presupuesto');
+    let presupuestoTotal = 0;
+    if (hasPresupuesto) {
+        presupuestoTotal = d.reduce((s, r) => s + (r.Presupuesto || 0), 0);
+    } else {
+        d.forEach(r => {
+            MESES.forEach(mes => { presupuestoTotal += r[mes] || 0; });
+        });
+    }
+    
+    const ejecutado = d.reduce((s, r) => s + calculateTotalEjecutado(r), 0);
+    const porEjecutar = presupuestoTotal - ejecutado;
+    const pctEjec = presupuestoTotal > 0 ? ((ejecutado / presupuestoTotal) * 100).toFixed(1) : 0;
+    
+    const opex = d.filter(r => r.Tipo === 'OPEX').reduce((s, r) => s + calculateTotal(r), 0);
+    const capex = d.filter(r => r.Tipo === 'CAPEX').reduce((s, r) => s + calculateTotal(r), 0);
+    
+    document.getElementById('kpi1').textContent = fmt(presupuestoTotal);
+    document.getElementById('kpi2').textContent = fmt(ejecutado);
+    document.getElementById('kpi3').textContent = fmt(porEjecutar);
+    document.getElementById('kpi4').textContent = pctEjec + '%';
+    document.getElementById('kpiOpex').textContent = fmt(opex);
+    document.getElementById('kpiCapex').textContent = fmt(capex);
+    document.getElementById('kpiProyectos').textContent = d.length;
+}
+
+function updateCharts() {
+    const d = getFiltered();
+    
+    const monthlyData = MESES.map(mes => ({
+        mes,
+        total: d.reduce((s, r) => s + (r[mes] || 0), 0)
+    }));
+
+    if (charts.line) charts.line.destroy();
+    charts.line = new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(m => m.mes.substring(0, 3)),
+            datasets: [{
+                label: 'Gasto Mensual USD',
+                data: monthlyData.map(m => m.total),
+                borderColor: ERC_COLORS[0],
+                backgroundColor: ERC_COLORS[0] + '20',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { 
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        boxWidth: 15,
+                        font: { size: 11 },
+                        padding: 15
+                    }
+                } 
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    const byEmp = {};
+    d.forEach(r => {
+        if (!byEmp[r.Empresa]) byEmp[r.Empresa] = 0;
+        byEmp[r.Empresa] += calculateTotal(r);
+    });
+    const topEmps = Object.entries(byEmp).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (charts.bar) charts.bar.destroy();
+    charts.bar = new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: topEmps.map(e => e[0].substring(0, 12) + '...'),
+            datasets: [{
+                label: 'Total USD',
+                data: topEmps.map(e => e[1]),
+                backgroundColor: ERC_COLORS
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+
+    const byCat = {};
+    d.forEach(r => {
+        if (!byCat[r.Categoría]) byCat[r.Categoría] = 0;
+        byCat[r.Categoría] += calculateTotal(r);
+    });
+    const catData = Object.entries(byCat).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    if (charts.pie) charts.pie.destroy();
+    charts.pie = new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catData.map(c => c[0]),
+            datasets: [{ data: catData.map(c => c[1]), backgroundColor: ERC_COLORS }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } } }
+        }
+    });
+
+    const selectedMonthsData = Array.from(selectedMonths).map(m => ({ mes: m, total: d.reduce((s, r) => s + (r[m] || 0), 0) }));
+    if (charts.barMonth) charts.barMonth.destroy();
+    charts.barMonth = new Chart(document.getElementById('barChartMonthly'), {
+        type: 'bar',
+        data: {
+            labels: selectedMonthsData.map(m => m.mes.substring(0, 3)),
+            datasets: [{
+                label: 'Ejecutado USD',
+                data: selectedMonthsData.map(m => m.total),
+                backgroundColor: ERC_COLORS[2]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
+        }
+    });
+}
+
+function updateTable() {
+    const d = getFiltered();
+    const tbody = document.getElementById('dataTableBody');
+    tbody.innerHTML = '';
+
+    const hasPresupuesto = DATA.length > 0 && DATA[0].hasOwnProperty('Presupuesto');
+
+    const dataWithCalc = d.map(r => {
+        let presupuesto = 0;
+        if (hasPresupuesto) {
+            presupuesto = r.Presupuesto || 0;
+        } else {
+            MESES.forEach(mes => { presupuesto += r[mes] || 0; });
+        }
+        
+        return {
+            ...r, 
+            calcTotal: calculateTotal(r),
+            calcEjecutado: calculateTotalEjecutado(r),
+            presupuestoTotal: presupuesto
+        };
+    })
+        .filter(r => r.calcTotal > 0)
+        .sort((a, b) => b.calcTotal - a.calcTotal)
+        .slice(0, 15);
+
+    dataWithCalc.forEach(r => {
+        const status = r.calcTotal > 30000 ? 'high' : r.calcTotal > 10000 ? 'medium' : 'low';
+        const statusText = r.calcTotal > 30000 ? 'Alto' : r.calcTotal > 10000 ? 'Medio' : 'Bajo';
+        
+        let porcentajeEjec = 0;
+        let progressClass = 'high';
+        
+        if (r.presupuestoTotal > 0) {
+            porcentajeEjec = (r.calcEjecutado / r.presupuestoTotal) * 100;
+            if (porcentajeEjec < 50) progressClass = 'low';
+            else if (porcentajeEjec < 80) progressClass = 'medium';
+            else progressClass = 'high';
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${r.Empresa.substring(0, 28)}${r.Empresa.length > 28 ? '...' : ''}</td>
+            <td>${r.Categoría}</td>
+            <td>${r.Nomenclatura}</td>
+            <td class="currency-cell">${fmt(r.presupuestoTotal)}</td>
+            <td class="currency-cell">${fmt(r.calcEjecutado)}</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar ${progressClass}" style="width: ${Math.min(porcentajeEjec, 100)}%">
+                        <span class="progress-text">${porcentajeEjec.toFixed(1)}%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-${status}">${statusText}</span></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function resetFilters() {
+    document.getElementById('empresaFilter').value = 'Todas';
+    document.getElementById('categoriaFilter').value = 'Todas';
+    
+    MESES.forEach(mes => {
+        selectedMonths.add(mes);
+        document.getElementById('mes_' + mes).checked = true;
+        document.getElementById('mes_' + mes).parentElement.classList.add('active');
+    });
+    
+    updateDashboard();
+}
+
+function updateDashboard() {
+    updateKPIs();
+    updateCharts();
+    updateTable();
+}
+
+window.onload = initDashboard;
+    </script>
+</body>
+</html>
