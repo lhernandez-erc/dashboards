@@ -413,6 +413,92 @@
             background: linear-gradient(90deg, var(--erc-blue), var(--erc-teal));
         }
 
+        /* Tarjeta 1: TOTAL PRESUPUESTADO - Azul ERC */
+        .kpi-card.total-presupuesto {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+        }
+
+        .kpi-card.total-presupuesto::before {
+            background: linear-gradient(90deg, #0066CC, #0052A3);
+            height: 5px;
+        }
+
+        .kpi-card.total-presupuesto .kpi-value {
+            background: linear-gradient(90deg, #0066CC, #0052A3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Tarjeta 2: PROMEDIO MENSUAL - Teal/Cyan */
+        .kpi-card.promedio-mensual {
+            background: linear-gradient(135deg, #f0fbff 0%, #e6f9fd 100%);
+        }
+
+        .kpi-card.promedio-mensual::before {
+            background: linear-gradient(90deg, #17a2b8, #138496);
+            height: 5px;
+        }
+
+        .kpi-card.promedio-mensual .kpi-value {
+            background: linear-gradient(90deg, #17a2b8, #138496);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Tarjeta 3: CATEGORÍA PRINCIPAL - Verde Azulado */
+        .kpi-card.categoria-principal {
+            background: linear-gradient(135deg, #f0faf9 0%, #e6f7f5 100%);
+        }
+
+        .kpi-card.categoria-principal::before {
+            background: linear-gradient(90deg, #00897B, #00695C);
+            height: 5px;
+        }
+
+        .kpi-card.categoria-principal .kpi-value {
+            background: linear-gradient(90deg, #00897B, #00695C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 18px;
+        }
+
+        /* Tarjeta 4: EMPRESAS ACTIVAS - Verde Claro */
+        .kpi-card.empresas-activas {
+            background: linear-gradient(135deg, #f1f8f4 0%, #e8f5e9 100%);
+        }
+
+        .kpi-card.empresas-activas::before {
+            background: linear-gradient(90deg, #4CAF50, #388E3C);
+            height: 5px;
+        }
+
+        .kpi-card.empresas-activas .kpi-value {
+            background: linear-gradient(90deg, #4CAF50, #388E3C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Tarjeta 5: % EJECUCIÓN - Púrpura */
+        .kpi-card.ejecucion {
+            background: linear-gradient(135deg, #f9f5fb 0%, #f3e5f5 100%);
+        }
+
+        .kpi-card.ejecucion::before {
+            background: linear-gradient(90deg, #9C27B0, #7B1FA2);
+            height: 5px;
+        }
+
+        .kpi-card.ejecucion .kpi-value {
+            background: linear-gradient(90deg, #9C27B0, #7B1FA2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
         .kpi-card.opex::before {
             background: linear-gradient(90deg, #FF6B6B, #FF8E53);
         }
@@ -789,29 +875,29 @@
             <div id="dashboardContent" style="display: none;">
                 <!-- KPIs -->
                 <div class="kpi-grid">
-                    <div class="kpi-card">
+                    <div class="kpi-card total-presupuesto">
                         <div class="kpi-label">Total Presupuestado</div>
                         <div class="kpi-value" id="kpi_total">$0</div>
                         <div class="kpi-subtitle">Presupuesto anual</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card promedio-mensual">
                         <div class="kpi-label">Promedio Mensual</div>
                         <div class="kpi-value" id="kpi_promedio">$0</div>
                         <div class="kpi-subtitle">Por mes</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card categoria-principal">
                         <div class="kpi-label">Categoría Principal</div>
                         <div class="kpi-value" style="font-size: 16px;" id="kpi_categoria">-</div>
                         <div class="kpi-subtitle" id="kpi_categoria_valor">$0</div>
                     </div>
-                    <div class="kpi-card">
+                    <div class="kpi-card empresas-activas">
                         <div class="kpi-label">Empresas Activas</div>
                         <div class="kpi-value" id="kpi_empresas">0</div>
                         <div class="kpi-subtitle">Con presupuesto</div>
                     </div>
-                    <div class="kpi-card" style="border-top: 4px solid #9C27B0;">
+                    <div class="kpi-card ejecucion">
                         <div class="kpi-label">% Ejecución</div>
-                        <div class="kpi-value" style="color: #9C27B0;" id="kpi_porcentaje">0%</div>
+                        <div class="kpi-value" id="kpi_porcentaje">0%</div>
                         <div class="kpi-subtitle">Del presupuesto</div>
                     </div>
                     <div class="kpi-card opex">
@@ -824,14 +910,14 @@
                         <div class="kpi-value" id="kpi_capex">$0</div>
                         <div class="kpi-subtitle">Inversión Capital</div>
                     </div>
-                    <div class="kpi-card" style="border-top: 4px solid #FF9800;">
+                    <div class="kpi-card blocked">
                         <div class="kpi-label">🔒 RESERVADO</div>
-                        <div class="kpi-value" style="color: #FF9800;" id="kpi_reservado">$0</div>
+                        <div class="kpi-value" id="kpi_reservado">$0</div>
                         <div class="kpi-subtitle" id="kpi_reservado_pct">0% del presupuesto</div>
                     </div>
-                    <div class="kpi-card" style="border-top: 4px solid #4CAF50;">
+                    <div class="kpi-card available">
                         <div class="kpi-label">✅ DISPONIBLE</div>
-                        <div class="kpi-value" style="color: #4CAF50;" id="kpi_disponible">$0</div>
+                        <div class="kpi-value" id="kpi_disponible">$0</div>
                         <div class="kpi-subtitle" id="kpi_disponible_pct">0% del presupuesto</div>
                     </div>
                 </div>
