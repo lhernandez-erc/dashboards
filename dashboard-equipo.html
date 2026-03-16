@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERC Capital Corp — Venta de Equipo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#1e3a5f; --cyan:#00b4e0; --cyan2:#0090c0;
+    --white:#ffffff; --light:#f0f6fb; --border:#c8dcea;
+    --text:#1e3a5f; --muted:#6b8caa;
+    --danger:#c0392b; --warn:#d67000; --ok:#1a7a4a;
+    --row-alt:#e8f3fa; --gold:#b8860b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--light);font-family:'Source Sans 3',sans-serif;color:var(--text);}
+
+  .header{background:var(--navy);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 12px rgba(0,0,0,.3);}
+  .header-brand{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white);letter-spacing:.04em;}
+  .header-title{color:var(--white);text-align:right;}
+  .header-title h1{font-family:'Playfair Display',serif;font-size:1.5rem;}
+  .header-title p{font-size:.78rem;color:var(--cyan);letter-spacing:.06em;text-transform:uppercase;margin-top:3px;}
+
+  .wrapper{max-width:1440px;margin:0 auto;padding:28px 24px;}
+
+  .config-bar{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 20px;display:flex;gap:12px;align-items:center;flex-wrap:nowrap;overflow-x:auto;margin-bottom:24px;}
+  .config-bar label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+  .config-bar input{border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'Source Sans 3',sans-serif;font-size:.85rem;color:var(--navy);outline:none;}
+  .config-bar input[type="number"]{width:70px;text-align:center;}
+  .config-bar input[type="date"]{width:160px;}
+  .config-bar input:focus{border-color:var(--cyan);}
+  .sep{width:1px;height:24px;background:var(--border);flex-shrink:0;}
+  .spacer{flex:1;}
+  .fecha-badge{background:#e8f3fa;border:1px solid var(--cyan);border-radius:6px;padding:4px 12px;font-size:.78rem;color:var(--cyan2);white-space:nowrap;font-family:'Playfair Display',serif;}
+
+  .btn{background:var(--navy);color:var(--white);border:none;font-family:'Playfair Display',serif;font-size:.82rem;padding:8px 18px;border-radius:6px;cursor:pointer;letter-spacing:.04em;transition:background .15s;white-space:nowrap;flex-shrink:0;}
+  .btn:hover{background:var(--cyan2);}
+  .btn-outline{background:transparent;color:var(--navy);border:1px solid var(--navy);}
+  .btn-outline:hover{background:var(--navy);color:var(--white);}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
+  .kpi{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--cyan);border-radius:8px;padding:16px;}
+  .kpi.navy-top{border-top-color:var(--navy);}
+  .kpi.ok-top{border-top-color:var(--ok);}
+  .kpi.warn-top{border-top-color:var(--warn);}
+  .kpi.gold-top{border-top-color:var(--gold);}
+  .kpi.red-top{border-top-color:var(--danger);}
+  .kpi-label{font-size:.67rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:5px;}
+  .kpi-value{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--navy);line-height:1;}
+  .kpi-value.ok{color:var(--ok);} .kpi-value.warn{color:var(--warn);} .kpi-value.gold{color:var(--gold);}
+  .kpi-sub{font-size:.68rem;color:var(--muted);margin-top:4px;}
+
+  .form-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:24px;}
+  .form-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--navy);margin-bottom:16px;}
+  .section-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:16px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .span2{grid-column:span 2;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .field input,.field select{border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:'Source Sans 3',sans-serif;font-size:.85rem;color:var(--navy);outline:none;background:var(--white);}
+  .field input:focus,.field select:focus{border-color:var(--cyan);}
+  .hint{font-size:.67rem;color:var(--muted);}
+  .editable-calc{background:#fffbf0 !important;border-color:var(--warn) !important;}
+
+  .preview-card{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:14px;}
+  .preview-card-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+  .preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;}
+  .prev-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+  .prev-val{font-family:'Playfair Display',serif;font-size:1rem;color:var(--navy);margin-top:2px;}
+  .prev-val.ok{color:var(--ok);} .prev-val.warn{color:var(--warn);} .prev-val.gold{color:var(--gold);}
+
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.67rem;font-weight:600;letter-spacing:.03em;}
+  .b-bueno{background:#d4edda;color:var(--ok);}
+  .b-regular{background:#fff3cd;color:var(--warn);}
+  .b-malo{background:#f8d7da;color:var(--danger);}
+  .b-obsoleto{background:#e2e3e5;color:#6c757d;}
+  .b-si{background:#d4edda;color:var(--ok);}
+  .b-no{background:#f8d7da;color:var(--danger);}
+
+  .table-wrap{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px;}
+  .table-head{background:var(--navy);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+  .table-head h2{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);}
+  .table-head span{font-size:.72rem;color:var(--cyan);text-transform:uppercase;letter-spacing:.05em;}
+  table{width:100%;border-collapse:collapse;font-size:.78rem;}
+  thead th{background:var(--light);color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+  tbody tr:nth-child(even){background:var(--row-alt);}
+  tbody tr:hover{background:#d6ecf6;}
+  tbody td{padding:8px 10px;vertical-align:top;}
+  .mono{font-family:'Courier New',monospace;}
+  .spec-chip{display:inline-block;background:var(--light);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:.67rem;color:var(--navy);margin:1px;white-space:nowrap;}
+  .dep-bar{width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
+  .dep-fill{height:100%;border-radius:3px;}
+  .btn-icon{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:.75rem;color:var(--muted);transition:all .15s;margin-right:3px;}
+  .btn-icon:hover{background:var(--danger);color:var(--white);border-color:var(--danger);}
+  .btn-icon.edit:hover{background:var(--navy);color:var(--white);border-color:var(--navy);}
+  .btn-icon.info{color:var(--cyan2);border-color:var(--cyan);}
+  .btn-icon.info:hover{background:var(--cyan2);color:var(--white);border-color:var(--cyan2);}
+  .btn-icon.info.active{background:var(--cyan2);color:var(--white);border-color:var(--cyan2);}
+  /* Desglose row */
+  .desglose-row td { padding: 0 !important; border-bottom: 2px solid var(--cyan) !important; }
+  .desglose-inner {
+    display: none; padding: 20px 24px;
+    background: linear-gradient(135deg, #f0f8fd 0%, #e8f3fa 100%);
+  }
+  .desglose-inner.open { display: block; }
+  .desglose-title {
+    font-family: 'Playfair Display', serif; font-size: .95rem;
+    color: var(--navy); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .desglose-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .desglose-block {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px;
+  }
+  .desglose-block-title {
+    font-size: .67rem; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); margin-bottom: 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .formula-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; font-size: .8rem; border-bottom: 1px dashed #e8eef3;
+  }
+  .formula-line:last-child { border-bottom: none; }
+  .formula-line .lbl { color: var(--muted); }
+  .formula-line .val { font-family: 'Courier New', monospace; color: var(--navy); font-weight: 600; }
+  .formula-line .val.ok   { color: var(--ok);    }
+  .formula-line .val.warn { color: var(--warn);  }
+  .formula-line .val.red  { color: var(--danger);}
+  .formula-line .val.gold { color: var(--gold);  }
+  .formula-eq {
+    background: var(--navy); color: var(--white); border-radius: 6px;
+    padding: 10px 14px; font-family: 'Courier New', monospace; font-size: .78rem;
+    margin-top: 10px; line-height: 1.6;
+  }
+  .formula-eq .eq-result {
+    font-size: 1rem; color: var(--cyan); font-weight: 700;
+    border-top: 1px solid rgba(255,255,255,.2); margin-top: 6px; padding-top: 6px;
+  }
+  .caso-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: .72rem; font-weight: 600;
+  }
+  .caso-a { background: #e8f3fa; color: var(--cyan2); }
+  .caso-b { background: #d4edda; color: var(--ok); }
+  .empty-state{text-align:center;padding:48px;color:var(--muted);}
+  .empty-state .icon{font-size:3rem;margin-bottom:10px;}
+
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;}
+  .modal-box{background:#fff;border-radius:12px;padding:28px;width:700px;max-width:95vw;max-height:92vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--navy);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+  .modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);}
+
+  .ficha-wrap{display:none;}
+  @media print{
+    .header,.config-bar,.form-card,.table-wrap,.kpis,.btn,.btn-outline,.btn-icon{display:none !important;}
+    .ficha-wrap{display:block !important;}
+    body{background:white;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">ERC Capital Corp</div>
+  <div class="header-title">
+    <h1>Venta de Equipo</h1>
+    <p>Valoración · Depreciación · Precio Sugerido</p>
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <div class="config-bar">
+    <input type="date" id="fechaCalculo" onchange="onFechaChange()" style="display:none">
+    <span class="fecha-badge" id="fechaBadge" title="Fecha de cálculo = hoy (automático)">📅 —</span>
+    <div class="sep"></div>
+    <label>% Ganancia:</label>
+    <input type="number" id="pctGlobal" value="10" min="0" max="200" onchange="recalcularTodo()">
+    <label>%</label>
+    <div class="sep"></div>
+    <label>Vida útil:</label>
+    <input type="number" id="vidaUtil" value="36" min="12" max="120" onchange="recalcularTodo()">
+    <label>meses</label>
+    <div class="spacer"></div>
+    <button class="btn btn-outline" onclick="exportarCSV()">↓ Exportar CSV</button>
+    <button class="btn btn-outline" onclick="imprimirFichas('publica')">⎙ Ficha Pública</button>
+    <button class="btn btn-outline" onclick="imprimirFichas('interna')">⎙ Ficha Interna</button>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi navy-top">
+      <div class="kpi-label">Total Equipos</div>
+      <div class="kpi-value" id="kpiTotal">0</div>
+      <div class="kpi-sub" id="kpiTipos">—</div>
+    </div>
+    <div class="kpi warn-top">
+      <div class="kpi-label">Valor en Libros</div>
+      <div class="kpi-value warn" id="kpiLibros">Q0.00</div>
+      <div class="kpi-sub">total contable</div>
+    </div>
+    <div class="kpi gold-top">
+      <div class="kpi-label">Valor de Mercado</div>
+      <div class="kpi-value gold" id="kpiMercado">Q0.00</div>
+      <div class="kpi-sub">estimado según estado</div>
+    </div>
+    <div class="kpi ok-top">
+      <div class="kpi-label">Precio Venta Total</div>
+      <div class="kpi-value ok" id="kpiVenta">Q0.00</div>
+      <div class="kpi-sub">sugerido con ganancia</div>
+    </div>
+    <div class="kpi red-top">
+      <div class="kpi-label">Dep. 100%</div>
+      <div class="kpi-value" id="kpiDep100">0</div>
+      <div class="kpi-sub">valor en libros = Q0</div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <!-- TOGGLE MODO -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden;width:fit-content">
+      <button id="btnModo1" onclick="setModo(1)"
+        style="padding:9px 24px;border:none;cursor:pointer;font-family:'Playfair Display',serif;font-size:.85rem;letter-spacing:.03em;background:var(--navy);color:var(--white);transition:all .15s">
+        ⚡ Valoración Rápida
+      </button>
+      <button id="btnModo2" onclick="setModo(2)"
+        style="padding:9px 24px;border:none;cursor:pointer;font-family:'Playfair Display',serif;font-size:.85rem;letter-spacing:.03em;background:var(--light);color:var(--muted);transition:all .15s">
+        📋 Ficha Completa
+      </button>
+    </div>
+    <div id="modoDesc" style="font-size:.78rem;color:var(--muted);margin-bottom:16px">
+      ⚡ <strong>Valoración Rápida</strong> — Solo datos financieros para calcular el precio de venta al instante.
+    </div>
+
+    <!-- CAMPOS COMUNES (ambos modos) -->
+    <div class="section-label">Datos del equipo</div>
+    <div class="form-grid">
+      <div class="field span2">
+        <label>Descripción / Modelo *</label>
+        <input type="text" id="fDesc" placeholder="Ej. Dell Latitude 5420 · HP ProBook 450 G8">
+      </div>
+      <div class="field">
+        <label>Tipo de equipo *</label>
+        <select id="fTipo">
+          <option value="">Seleccionar...</option>
+          <option value="Laptop">💻 Laptop</option>
+          <option value="Desktop">🖥 Desktop / Torre</option>
+          <option value="Monitor">🖥 Monitor</option>
+          <option value="Impresora">🖨 Impresora</option>
+          <option value="Otro">📦 Otro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado *</label>
+        <select id="fEstado" onchange="previewForm()">
+          <option value="">Seleccionar...</option>
+          <option value="Bueno">✅ Bueno — funciona perfectamente</option>
+          <option value="Regular">⚠️ Regular — funciona con detalles</option>
+          <option value="Malo">❌ Malo — fallas importantes</option>
+          <option value="Obsoleto">🗑 Obsoleto — sin uso posible</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SECCIÓN ESPECIFICACIONES (solo Modo 2) -->
+    <div id="secSpecs" style="display:none">
+      <div class="section-label">Especificaciones técnicas</div>
+      <div class="form-grid">
+        <div class="field"><label>No. Serie / Código</label><input type="text" id="fSerie" placeholder="SN-001"></div>
+        <div class="field"><label>Procesador</label><input type="text" id="fCPU" placeholder="Intel Core i5-1135G7"></div>
+        <div class="field"><label>RAM</label><input type="text" id="fRAM" placeholder="8 GB DDR4"></div>
+        <div class="field">
+          <label>Tipo de almacenamiento</label>
+          <select id="fStorTipo">
+            <option value="SSD NVMe">💿 SSD NVMe</option>
+            <option value="SSD SATA">💿 SSD SATA</option>
+            <option value="HDD">🖴 HDD</option>
+            <option value="eMMC">📦 eMMC</option>
+            <option value="N/A">— No aplica</option>
+          </select>
+        </div>
+        <div class="field"><label>Capacidad almacenamiento</label><input type="text" id="fStorCap" placeholder="256 GB"></div>
+        <div class="field"><label>Pantalla / Tamaño</label><input type="text" id="fPantalla" placeholder='14" FHD IPS'></div>
+        <div class="field"><label>Sistema Operativo</label><input type="text" id="fSO" placeholder="Windows 11 Pro" value="Windows 11 Home"></div>
+        <div class="field">
+          <label>% Capacidad batería</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="fBateriaPct" min="0" max="100" placeholder="Ej. 76"
+              style="width:70px;text-align:center" oninput="clasificarBateria('fBateriaPct','fBateriaLabel')">
+            <span style="font-size:.85rem;color:var(--navy)">%</span>
+            <span id="fBateriaLabel" style="font-size:.82rem;color:var(--muted)">— No aplica</span>
+          </div>
+          <span class="hint">Ingresa el % del reporte del equipo (vacío = No aplica)</span>
+        </div>
+        <div class="field">
+          <label>¿Incluye cargador?</label>
+          <select id="fCargador">
+            <option value="Sí">✅ Sí</option>
+            <option value="No">❌ No</option>
+            <option value="N/A">— No aplica</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DATOS FINANCIEROS (ambos modos) -->
+    <div class="section-label">Datos financieros</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Fecha de compra *</label>
+        <input type="date" id="fFecha" oninput="previewForm()">
+      </div>
+      <div class="field">
+        <label>Valor de compra (con IVA) *</label>
+        <input type="number" id="fValorIVA" placeholder="0.00" min="0" step="0.01" oninput="previewForm()">
+        <span class="hint">El sistema calcula el valor sin IVA (÷1.12)</span>
+      </div>
+      <div class="field">
+        <label>Precio nuevo actual (referencia)</label>
+        <input type="number" id="fPrecioNuevo" placeholder="0.00" min="0" step="0.01" oninput="previewForm()">
+        <span class="hint">Opcional — si no lo tenés, el sistema estima el precio</span>
+      </div>
+      <div class="field">
+        <label>Valor en libros (editable)</label>
+        <input type="number" id="fValorLibros" placeholder="Se calcula automáticamente" min="0" step="0.01"
+               class="editable-calc" oninput="previewForm()">
+        <span class="hint" style="color:var(--warn)">⚠ Editable — ingresa el dato exacto de contabilidad si difiere</span>
+      </div>
+      <div class="field">
+        <label>% Ganancia individual (opcional)</label>
+        <input type="number" id="fPct" placeholder="Usa % global si vacío" min="0" max="200" oninput="previewForm()">
+      </div>
+    </div>
+
+    <div id="previewFormWrap" class="preview-card" style="display:none">
+      <div class="preview-card-title">📊 Cálculo en tiempo real — <span id="previewFechaLabel" style="color:var(--cyan2)"></span></div>
+      <div class="preview-grid" id="previewFormGrid"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" onclick="agregarEquipo()">➕ Agregar al inventario</button>
+      <button class="btn btn-outline" onclick="limpiarForm()">✕ Limpiar</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head">
+      <h2>Inventario para Venta</h2>
+      <span id="contadorEquipos">0 equipos</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Tipo</th><th>Descripción</th><th>Serie</th>
+            <th>Especificaciones</th><th>Cargador</th>
+            <th>Fecha Compra</th><th>Antigüedad</th>
+            <th>Val. c/IVA</th><th>Val. s/IVA</th>
+            <th>Dep. Acum.</th><th>Val. Libros</th>
+            <th>Estado</th><th>Val. Mercado</th>
+            <th>% Gan.</th><th>💰 Precio Venta</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody">
+          <tr><td colspan="17"><div class="empty-state">
+            <div class="icon">💻</div>
+            <p>Agrega equipos usando el formulario de arriba.</p>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="ficha-wrap" id="fichasWrap"></div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">✎ Editar Equipo <button class="modal-close" onclick="cerrarModal()">×</button></div>
+    <div class="section-label">Información general</div>
+    <div class="form-grid">
+      <div class="field span2"><label>Descripción</label><input type="text" id="eDesc"></div>
+      <div class="field"><label>Tipo</label>
+        <select id="eTipo">
+          <option value="Laptop">💻 Laptop</option><option value="Desktop">🖥 Desktop</option>
+          <option value="Monitor">🖥 Monitor</option><option value="Impresora">🖨 Impresora</option><option value="Otro">📦 Otro</option>
+        </select>
+      </div>
+      <div class="field"><label>No. Serie</label><input type="text" id="eSerie"></div>
+      <div class="field"><label>Estado</label>
+        <select id="eEstado" onchange="previewEdit()">
+          <option value="Bueno">✅ Bueno</option><option value="Regular">⚠️ Regular</option>
+          <option value="Malo">❌ Malo</option><option value="Obsoleto">🗑 Obsoleto</option>
+        </select>
+      </div>
+      <div class="field"><label>Cargador</label>
+        <select id="eCargador"><option value="Sí">✅ Sí</option><option value="No">❌ No</option><option value="N/A">— N/A</option></select>
+      </div>
+    </div>
+    <div class="section-label">Especificaciones</div>
+    <div class="form-grid">
+      <div class="field"><label>Procesador</label><input type="text" id="eCPU"></div>
+      <div class="field"><label>RAM</label><input type="text" id="eRAM"></div>
+      <div class="field"><label>Tipo almacenamiento</label>
+        <select id="eStorTipo">
+          <option value="SSD NVMe">💿 SSD NVMe</option><option value="SSD SATA">💿 SSD SATA</option>
+          <option value="HDD">🖴 HDD</option><option value="eMMC">📦 eMMC</option><option value="N/A">— N/A</option>
+        </select>
+      </div>
+      <div class="field"><label>Capacidad</label><input type="text" id="eStorCap" placeholder="256 GB"></div>
+      <div class="field"><label>Pantalla</label><input type="text" id="ePantalla"></div>
+      <div class="field"><label>Sistema Operativo</label><input type="text" id="eSO"></div>
+      <div class="field">
+        <label>% Capacidad batería</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="eBateriaPct" min="0" max="100" placeholder="76" style="width:70px;text-align:center;border:1px solid var(--border);border-radius:6px;padding:6px 8px;outline:none;font-size:.85rem" oninput="clasificarBateria('eBateriaPct','eBateriaLabel')">
+          <span style="font-size:.85rem;color:var(--navy)">%</span>
+          <span id="eBateriaLabel" style="font-size:.82rem;color:var(--muted)">— No aplica</span>
+        </div>
+      </div>
+    </div>
+    <div class="section-label">Financiero</div>
+    <div class="form-grid">
+      <div class="field"><label>Fecha de compra</label><input type="date" id="eFecha" oninput="previewEdit()"></div>
+      <div class="field"><label>Valor con IVA</label><input type="number" id="eValorIVA" oninput="previewEdit()"></div>
+      <div class="field"><label>Precio nuevo actual (referencia)</label><input type="number" id="ePrecioNuevo" placeholder="0.00" step="0.01" oninput="previewEdit()"></div>
+      <div class="field"><label>Val. Libros (editable)</label><input type="number" id="eValorLibros" class="editable-calc" oninput="previewEdit()"></div>
+      <div class="field"><label>% Ganancia individual</label><input type="number" id="ePct" placeholder="Usa % global"></div>
+    </div>
+    <div id="previewEditWrap" class="preview-card" style="display:none;margin-top:12px">
+      <div class="preview-card-title">📊 Preview</div>
+      <div class="preview-grid" id="previewEditGrid"></div>
+    </div>
+    <input type="hidden" id="editIdx">
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn" onclick="guardarEdicion()">Guardar cambios</button>
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let equipos = [];
+let modoActual = 1; // 1 = Rápida, 2 = Completa
+
+function setModo(m){
+  modoActual = m;
+  const specs = document.getElementById('secSpecs');
+  const b1 = document.getElementById('btnModo1');
+  const b2 = document.getElementById('btnModo2');
+  const desc = document.getElementById('modoDesc');
+  if(m === 1){
+    specs.style.display = 'none';
+    b1.style.background = 'var(--navy)'; b1.style.color = 'var(--white)';
+    b2.style.background = 'var(--light)'; b2.style.color = 'var(--muted)';
+    desc.innerHTML = '⚡ <strong>Valoración Rápida</strong> — Solo datos financieros para calcular el precio de venta al instante.';
+  } else {
+    specs.style.display = 'block';
+    b2.style.background = 'var(--navy)'; b2.style.color = 'var(--white)';
+    b1.style.background = 'var(--light)'; b1.style.color = 'var(--muted)';
+    desc.innerHTML = '📋 <strong>Ficha Completa</strong> — Todos los datos del equipo para generar la ficha de venta al comprador.';
+  }
+  previewForm();
+}
+const IVA = 0.12;
+const Q = n => `Q${Number(n).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+window.addEventListener('load', () => {
+  document.getElementById('fechaCalculo').value = new Date().toISOString().slice(0,10);
+  actualizarBadge();
+});
+
+function actualizarBadge(){
+  const f = document.getElementById('fechaCalculo').value;
+  document.getElementById('fechaBadge').textContent = f ? '📅 ' + fmtFecha(f) : '📅 —';
+}
+
+function onFechaChange(){ actualizarBadge(); recalcularTodo(); }
+
+function getFecha(){ return document.getElementById('fechaCalculo').value || new Date().toISOString().slice(0,10); }
+function getVU()   { return parseInt(document.getElementById('vidaUtil').value) || 36; }
+function getPctG() { return parseFloat(document.getElementById('pctGlobal').value) || 10; }
+
+// ── Cálculo depreciación ──
+function calcDep(valorConIVA, fechaCompra){
+  const vc  = (parseFloat(valorConIVA)||0) / (1 + IVA); // base depreciable = sin IVA
+  const vu  = getVU();
+  const fc  = getFecha();
+  const d0  = new Date(fechaCompra + 'T00:00:00');
+  const d1  = new Date(fc + 'T00:00:00');
+  if(isNaN(d0)||isNaN(d1)) return null;
+  const meses = Math.max(0,(d1.getFullYear()-d0.getFullYear())*12+(d1.getMonth()-d0.getMonth()));
+  const años  = Math.floor(meses/12), mr = meses%12;
+  const antStr = años>0 ? `${años}a${mr>0?' '+mr+'m':''}` : `${meses}m`;
+  const depM  = vc / vu;
+  const depA  = Math.min(meses*depM, vc);
+  const vlC   = Math.max(0, vc - depA);
+  const pctD  = vc>0 ? Math.min(100, Math.round(depA/vc*100)) : 100;
+  return { vc, meses, depA, vlC, pctD, antStr };
+}
+
+// ── Tabla de degradación: estado × antigüedad en años ──
+// ── Mapeo estado cualitativo → valor numérico (escala 1-10) ──
+const ESTADO_NUM = { Bueno:8.0, Regular:5.5, Malo:3.0, Obsoleto:1.5 };
+
+// Factor de depreciación base (equivalente a 1 - 33.33% = 0.6667)
+const FACTOR_DEP = 1 - (1/3); // 0.6667
+
+// Precio mínimo: 3% del valor original s/IVA (piso de seguridad)
+const PCT_MINIMO = 0.03;
+
+// ── Fórmula de venta basada en Excel ──
+// H8 = PROMEDIO(ValorCompra, ValorNuevo) × (Estado/10)
+// H9 = PROMEDIO(ValorCompra, ValorNuevo) × (0.6667 ^ años)
+// Valor venta:
+//   SI estado >= 8.5 → H8
+//   SI años >= 3     → PROMEDIO(H9, (H8 × años) / 10)
+//   SINO             → PROMEDIO(H8, H9)
+function calcVentaExcel(vcSinIVA, precioNuevo, estadoNum, años){
+  // Base: promedio entre valor compra s/IVA y precio nuevo
+  // Si no hay precio nuevo, usar solo valor compra s/IVA
+  const base = precioNuevo > 0
+    ? (vcSinIVA + precioNuevo) / 2
+    : vcSinIVA;
+
+  // Factor de depreciación con piso mínimo (nunca llega a 0)
+  const factorDep = Math.max(Math.pow(FACTOR_DEP, años), PCT_MINIMO);
+
+  const h8 = base * (estadoNum / 10);               // ajuste por estado
+  const h9 = base * factorDep;                       // ajuste por depreciación
+
+  let pv;
+  if(estadoNum >= 8.5){
+    // Equipo casi nuevo → precio por estado
+    pv = h8;
+  } else if(años >= 3){
+    // Equipo viejo → mezcla depreciación + estado×años
+    pv = (h9 + (h8 * años / 10)) / 2;
+  } else {
+    // Caso normal → promedio de ambos factores
+    pv = (h8 + h9) / 2;
+  }
+
+  // Aplicar piso mínimo absoluto
+  const minimo = vcSinIVA * PCT_MINIMO;
+  pv = Math.max(pv, minimo);
+
+  return { h8, h9, base, factorDep, pv };
+}
+
+// ── Cálculo principal por equipo ──
+function calcEquipo(eq){
+  const dep = calcDep(eq.valorConIVA, eq.fecha);
+  if(!dep) return null;
+
+  const vlM       = parseFloat(eq.valorLibrosManual)||0;
+  const vl        = vlM>0 ? vlM : dep.vlC;
+  const pn        = parseFloat(eq.precioNuevo)||0;
+  const sinRef    = pn <= 0;
+  const estadoNum = ESTADO_NUM[eq.estado||'Malo'] || 3.0;
+  const años      = dep.meses / 12; // años con decimales para mayor precisión
+
+  // ── Precio usando fórmula Excel ──
+  const calc = calcVentaExcel(dep.vc, pn, estadoNum, años);
+
+  // ── Aplicar % ganancia individual si se ingresó ──
+  // (la fórmula ya incluye lógica de mercado, ganancia es un ajuste adicional opcional)
+  const pctSolicitado = (eq.pctGanancia!==''&&eq.pctGanancia!==null&&eq.pctGanancia!==undefined)
+    ? parseFloat(eq.pctGanancia) : 0; // por defecto 0% — la fórmula ya da el precio justo
+  const pv = calc.pv * (1 + pctSolicitado/100);
+
+  // ── Determinar caso (informativo) ──
+  const tieneLibros = vl > 0;
+  const caso = tieneLibros ? 'B' : 'A';
+  // Nota: en la nueva fórmula el valor en libros es referencia contable, no se suma al precio
+  // El precio ya refleja estado + depreciación de mercado
+
+  const regla = estadoNum >= 8.5 ? 'estado (casi nuevo)'
+              : años >= 3        ? 'mixta (viejo: dep+estado×años)'
+              :                    'normal (promedio estado+dep)';
+
+  return {
+    ...dep, vl, pv, pct: pctSolicitado,
+    // Datos de la fórmula Excel para el desglose
+    h8: calc.h8, h9: calc.h9, base: calc.base,
+    factorDep: calc.factorDep, estadoNum, años,
+    tieneLibros, caso, sinRef, regla,
+    vlManualUsado: vlM>0, pn,
+    // Compatibilidad con campos que usa renderTabla
+    vm: calc.h9, pvMercado: calc.pv,
+    pctMercLabel: `${estadoNum}/10 · dep=${(calc.factorDep*100).toFixed(1)}%`,
+    gananciaMax: 999, pctLimitado: false, pctSolicitado
+  };
+}
+// ── Formateo inteligente de especificaciones ──
+function fmtRAM(v){
+  if(!v) return '';
+  const s = String(v).trim();
+  // Si ya tiene unidad reconocible, dejar como está
+  if(/GB|TB|MB/i.test(s)) return s;
+  // Si es solo número, agregar GB
+  if(/^\d+$/.test(s)) return `${s} GB`;
+  return s;
+}
+function fmtStorage(tipo, cap){
+  const t = (tipo&&tipo!=='N/A') ? tipo : '';
+  const c = cap ? String(cap).trim() : '';
+  const cFmt = c && /^\d+$/.test(c) ? `${c} GB` : c;
+  return [t, cFmt].filter(Boolean).join(' ');
+}
+function fmtPantalla(v){
+  if(!v) return '';
+  const s = String(v).trim();
+  if(s.includes('"') || s.includes('″') || s.toLowerCase().includes('pulg')) return s;
+  // Si empieza con número sin unidad
+  if(/^\d+(\.\d+)?$/.test(s)) return `${s}"`;
+  return s;
+}
+function fmtCPU(v){
+  if(!v) return '';
+  // Capitalizar primera letra si viene en minúsculas
+  return String(v).trim().replace(/^./, c => c.toUpperCase());
+}
+function clasificarBateria(inputId, labelId){
+  const pct = parseInt(document.getElementById(inputId).value);
+  const lbl = document.getElementById(labelId);
+  if(isNaN(pct) || document.getElementById(inputId).value === ''){
+    lbl.textContent = '— No aplica'; lbl.style.color = 'var(--muted)'; return '';
+  }
+  let texto, color;
+  if(pct >= 80)      { texto = '🔋 Excelente';          color = 'var(--ok)';     }
+  else if(pct >= 60) { texto = '🔋 Buena';              color = 'var(--ok)';     }
+  else if(pct >= 40) { texto = '🪫 Regular';            color = 'var(--warn)';   }
+  else if(pct >= 20) { texto = '🪫 Mala';               color = 'var(--danger)'; }
+  else               { texto = '⚠️ Necesita reemplazo'; color = 'var(--danger)'; }
+  lbl.textContent = texto; lbl.style.color = color;
+  previewForm();
+  return texto;
+}
+
+function getBateriaLabel(pct){
+  if(pct===null||pct===undefined||pct==='') return '';
+  const p = parseInt(pct);
+  if(isNaN(p)) return '';
+  if(p>=80)  return `🔋 Excelente (${p}%)`;
+  if(p>=60)  return `🔋 Buena (${p}%)`;
+  if(p>=40)  return `🪫 Regular (${p}%)`;
+  if(p>=20)  return `🪫 Mala (${p}%)`;
+  return `⚠️ Reemplazar (${p}%)`;
+}
+
+// ── Cálculo principal por equipo ──
+
+function buildPreview(c){
+  if(!c) return '';
+  const sinRefWarn = c.sinRef
+    ? `<div style="grid-column:span 2;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:6px 10px;font-size:.72rem;color:var(--warn)">
+        ⚠ Sin precio de referencia — base = solo valor compra s/IVA
+       </div>` : '';
+  const pctExtra = c.pct > 0
+    ? `<div><div class="prev-lbl">+ ${c.pct}% ganancia adicional</div><div class="prev-val warn">× ${(1+c.pct/100).toFixed(2)}</div></div>` : '';
+  return `
+    ${sinRefWarn}
+    <div><div class="prev-lbl">Sin IVA (base dep.)</div><div class="prev-val">${Q(c.vc)}</div></div>
+    <div><div class="prev-lbl">Precio nuevo ref.</div><div class="prev-val">${c.pn>0?Q(c.pn):'— sin referencia'}</div></div>
+    <div><div class="prev-lbl">Base promedio</div><div class="prev-val">${Q(c.base)}</div></div>
+    <div><div class="prev-lbl">Estado (${c.estadoNum}/10)</div><div class="prev-val gold">H8 = ${Q(c.h8)}</div></div>
+    <div><div class="prev-lbl">Dep. (0.6667^${c.años.toFixed(2)}a = ${(c.factorDep*100).toFixed(1)}%)</div><div class="prev-val warn">H9 = ${Q(c.h9)}</div></div>
+    <div><div class="prev-lbl">Regla aplicada</div><div class="prev-val" style="font-size:.78rem;color:var(--cyan2)">${c.regla}</div></div>
+    ${pctExtra}
+    <div style="grid-column:span 2"><div class="prev-lbl">💰 Precio Venta Final</div><div class="prev-val ok" style="font-size:1.3rem">${Q(c.pv)}</div></div>
+  `;
+}
+
+// ── Preview formulario ──
+function previewForm(){
+  const vc=document.getElementById('fValorIVA').value;
+  const fecha=document.getElementById('fFecha').value;
+  const estado=document.getElementById('fEstado').value;
+  const libros=document.getElementById('fValorLibros').value;
+  const pctIn=document.getElementById('fPct').value;
+  const pn=document.getElementById('fPrecioNuevo').value;
+  const wrap=document.getElementById('previewFormWrap');
+  document.getElementById('previewFechaLabel').textContent = getFecha() ? 'al '+fmtFecha(getFecha()) : '';
+  if(!vc||!fecha||!estado){wrap.style.display='none';return;}
+  const fakeEq={valorConIVA:parseFloat(vc)||0,fecha,estado,
+    precioNuevo:parseFloat(pn)||0,
+    valorLibrosManual:parseFloat(libros)||0,
+    pctGanancia:pctIn!==''?parseFloat(pctIn):''};
+  const c=calcEquipo(fakeEq);
+  if(!c){wrap.style.display='none';return;}
+  document.getElementById('previewFormGrid').innerHTML=buildPreview(c);
+  wrap.style.display='block';
+}
+
+// ── Agregar ──
+function agregarEquipo(){
+  const desc  = document.getElementById('fDesc').value.trim();
+  const tipo  = document.getElementById('fTipo').value;
+  const serie = document.getElementById('fSerie').value.trim();
+  const estado= document.getElementById('fEstado').value;
+  const fecha = document.getElementById('fFecha').value;
+  const vc    = parseFloat(document.getElementById('fValorIVA').value);
+  const pn    = document.getElementById('fPrecioNuevo').value;
+  const libros= document.getElementById('fValorLibros').value;
+  const pct   = document.getElementById('fPct').value;
+
+  if(!desc)      { alert('Ingresa la descripción del equipo.');    return; }
+  if(!tipo)      { alert('Selecciona el tipo de equipo.');          return; }
+  if(!fecha)     { alert('Ingresa la fecha de compra.');            return; }
+  if(!vc||vc<=0) { alert('Ingresa el valor de compra con IVA.');   return; }
+  if(!estado)    { alert('Selecciona el estado del equipo.');       return; }
+
+  // Validaciones adicionales para Ficha Completa
+  if(modoActual === 2){
+    if(!document.getElementById('fCPU').value.trim())     { alert('Ingresa el procesador.');       return; }
+    if(!document.getElementById('fRAM').value.trim())     { alert('Ingresa la RAM.');              return; }
+    if(!document.getElementById('fStorCap').value.trim()) { alert('Ingresa la capacidad de almacenamiento.'); return; }
+    if(!document.getElementById('fPantalla').value.trim()){ alert('Ingresa el tamaño de pantalla.'); return; }
+    if(!document.getElementById('fSO').value.trim())      { alert('Ingresa el sistema operativo.'); return; }
+    const batV = document.getElementById('fBateriaPct').value;
+    if(tipo === 'Laptop' && (batV===''||batV===null)){
+      alert('Ingresa el % de capacidad de batería para laptops.'); return;
+    }
+  }
+
+  // Specs solo en modo 2
+  const esCompleta = modoActual === 2;
+  const cpu     = esCompleta ? document.getElementById('fCPU').value.trim()      : '';
+  const ram     = esCompleta ? document.getElementById('fRAM').value.trim()      : '';
+  const storTipo= esCompleta ? document.getElementById('fStorTipo').value        : '';
+  const storCap = esCompleta ? document.getElementById('fStorCap').value.trim()  : '';
+  const pant    = esCompleta ? document.getElementById('fPantalla').value.trim() : '';
+  const so      = esCompleta ? document.getElementById('fSO').value.trim()       : '';
+  const bat     = esCompleta ? document.getElementById('fBateriaPct').value      : '';
+  const carg    = esCompleta ? document.getElementById('fCargador').value        : 'N/A';
+
+  equipos.push({
+    id: Date.now(), modo: modoActual,
+    desc, tipo, serie, estado, cargador: carg,
+    cpu, ram, storTipo, storCap, pantalla: pant, so,
+    bateriaPct: bat !== '' ? parseInt(bat) : null,
+    fecha, valorConIVA: vc,
+    precioNuevo:       pn     !== '' ? parseFloat(pn)     : 0,
+    valorLibrosManual: libros !== '' ? parseFloat(libros) : 0,
+    pctGanancia:       pct    !== '' ? parseFloat(pct)    : ''
+  });
+  limpiarForm(); renderTabla(); renderKPIs();
+}
+
+function limpiarForm(){
+  // Limpiar todos los inputs de texto y número
+  ['fDesc','fSerie','fCPU','fRAM','fStorCap','fPantalla',
+   'fFecha','fValorIVA','fPrecioNuevo','fValorLibros','fPct','fBateriaPct']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+  // SO vuelve al valor por defecto
+  const soEl = document.getElementById('fSO');
+  if(soEl) soEl.value = 'Windows 11 Home';
+  // Resetear selects
+  const selects = {fTipo:'', fEstado:'', fCargador:'Sí', fStorTipo:'SSD NVMe'};
+  Object.entries(selects).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if(el) el.value = val;
+  });
+  // Resetear label de batería
+  const batLabel = document.getElementById('fBateriaLabel');
+  if(batLabel){ batLabel.textContent = '— No aplica'; batLabel.style.color = 'var(--muted)'; }
+  // Ocultar Y vaciar el preview completamente
+  const wrap = document.getElementById('previewFormWrap');
+  const grid = document.getElementById('previewFormGrid');
+  if(wrap){ wrap.style.display = 'none'; }
+  if(grid){ grid.innerHTML = ''; }
+}
+
+// ── Render tabla ──
+function renderTabla(){
+  const tbody=document.getElementById('tablaBody');
+  document.getElementById('contadorEquipos').textContent=`${equipos.length} equipo${equipos.length!==1?'s':''}`;
+  if(!equipos.length){
+    tbody.innerHTML=`<tr><td colspan="17"><div class="empty-state"><div class="icon">💻</div><p>Agrega equipos usando el formulario.</p></div></td></tr>`;
+    return;
+  }
+  const tipoEmoji={Laptop:'💻',Desktop:'🖥',Monitor:'🖥',Impresora:'🖨',Otro:'📦'};
+  tbody.innerHTML=equipos.map((eq,i)=>{
+    const c=calcEquipo(eq);
+    if(!c) return `<tr><td colspan="17" style="color:var(--muted);padding:10px">Error en datos: ${eq.desc}</td></tr>`;
+    const dc=c.pctD>=100?'var(--danger)':c.pctD>=66?'var(--warn)':'var(--ok)';
+    const bE={Bueno:'b-bueno',Regular:'b-regular',Malo:'b-malo',Obsoleto:'b-obsoleto'}[eq.estado]||'';
+    const bC=eq.cargador==='Sí'?'b-si':eq.cargador==='No'?'b-no':'';
+    const storStr=fmtStorage(eq.storTipo,eq.storCap);
+    const batStr=getBateriaLabel(eq.bateriaPct);
+    const specs=[
+      eq.cpu?`<span class="spec-chip">🔧 ${fmtCPU(eq.cpu)}</span>`:"",
+      eq.ram?`<span class="spec-chip">💾 ${fmtRAM(eq.ram)}</span>`:"",
+      storStr?`<span class="spec-chip">💿 ${storStr}</span>`:"",
+      eq.pantalla?`<span class="spec-chip">🖥 ${fmtPantalla(eq.pantalla)}</span>`:"",
+      eq.so?`<span class="spec-chip">🪟 ${eq.so}</span>`:"",
+      batStr?`<span class="spec-chip">${batStr}</span>`:"",
+    ].filter(Boolean).join("");
+    const libNote = c.vlManualUsado ? ` <span style="font-size:.62rem;color:var(--cyan2)" title="Valor de contabilidad">✎</span>` : '';
+    return `<tr>
+      <td style="color:var(--muted);font-size:.75rem">${i+1}</td>
+      <td style="font-size:.8rem">${tipoEmoji[eq.tipo]||'📦'} ${eq.tipo}</td>
+      <td>
+        <strong style="color:var(--navy)">${eq.desc}</strong>
+        <span style="display:inline-block;margin-left:5px;font-size:.62rem;padding:1px 6px;border-radius:10px;background:${eq.modo===2?'#e8f3fa':'#f0f6fb'};color:${eq.modo===2?'var(--cyan2)':'var(--muted)'}">
+          ${eq.modo===2?'📋 Ficha':'⚡ Rápida'}
+        </span>
+      </td>
+      <td class="mono" style="color:var(--muted);font-size:.75rem">${eq.serie||'—'}</td>
+      <td style="min-width:220px">${specs||'<span style="color:var(--muted)">—</span>'}</td>
+      <td><span class="badge ${bC}">${eq.cargador}</span></td>
+      <td class="mono">${fmtFecha(eq.fecha)}</td>
+      <td>${c.antStr}</td>
+      <td class="mono">${Q(eq.valorConIVA)}</td>
+      <td class="mono" style="color:var(--muted)">${Q(c.vc)}</td>
+      <td class="mono">${Q(c.depA)}<br>
+        <div class="dep-bar"><div class="dep-fill" style="width:${c.pctD}%;background:${dc}"></div></div>
+        <span style="font-size:.62rem;color:${dc}">${c.pctD}%</span>
+      </td>
+      <td class="mono" style="${c.vl<=0?'color:var(--muted)':'color:var(--warn);font-weight:600'}">${Q(c.vl)}${libNote}</td>
+      <td><span class="badge ${bE}">${eq.estado}</span></td>
+      <td class="mono" style="color:var(--gold);font-weight:600">${Q(c.vm)}</td>
+      <td class="mono">${c.pct}%<br><span style="font-size:.62rem;color:var(--muted)">Caso ${c.caso} · ${c.pctMercLabel}</span></td>
+      <td class="mono" style="color:var(--ok);font-weight:700;font-size:.9rem">${Q(c.pv)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon info" id="btnD_${i}" onclick="toggleDesglose(${i})" title="Ver cálculo detallado">🔍</button>
+        <button class="btn-icon edit" onclick="abrirEditar(${i})" title="Editar">✎</button>
+        <button class="btn-icon" onclick="eliminar(${i})" title="Eliminar">🗑</button>
+      </td>
+    </tr>
+    <tr class="desglose-row" id="desglose_${i}">
+      <td colspan="17">
+        <div class="desglose-inner" id="desgloseInner_${i}">
+          ${(()=>{try{return buildDesglose(eq,c,i);}catch(e){return "<p style='color:red;padding:10px'>Error desglose: "+e.message+"</p>";}})()}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Toggle desglose ──
+function toggleDesglose(i){
+  const inner = document.getElementById(`desgloseInner_${i}`);
+  const btn   = document.getElementById(`btnD_${i}`);
+  const open  = inner.classList.toggle('open');
+  btn.classList.toggle('active', open);
+  btn.title = open ? 'Ocultar cálculo' : 'Ver cálculo detallado';
+}
+
+// ── Construir desglose paso a paso ──
+function buildDesglose(eq, c, i){
+  const añosInt = Math.floor(c.meses/12);
+  const mResto  = c.meses % 12;
+  const antDetalle = `${añosInt} año${añosInt!==1?'s':''} ${mResto>0?mResto+' mes'+(mResto!==1?'es':''):''}`.trim();
+  const vu      = getVU();
+  const depMens = c.vc / vu;
+
+  // Bloque 1: Datos base
+  const bloque1 = `
+    <div class="desglose-block">
+      <div class="desglose-block-title">📦 Datos del equipo</div>
+      <div class="formula-line"><span class="lbl">Descripción</span><span class="val">${eq.desc}</span></div>
+      <div class="formula-line"><span class="lbl">Fecha de compra</span><span class="val">${fmtFecha(eq.fecha)}</span></div>
+      <div class="formula-line"><span class="lbl">Fecha de cálculo</span><span class="val">${fmtFecha(getFecha())}</span></div>
+      <div class="formula-line"><span class="lbl">Antigüedad</span><span class="val">${antDetalle} (${c.años.toFixed(2)} años)</span></div>
+      <div class="formula-line"><span class="lbl">Estado</span><span class="val">${eq.estado} → ${c.estadoNum}/10</span></div>
+      <div class="formula-line"><span class="lbl">Vida útil</span><span class="val">${vu} meses</span></div>
+    </div>`;
+
+  // Bloque 2: Depreciación contable
+  const bloque2 = `
+    <div class="desglose-block">
+      <div class="desglose-block-title">📉 Depreciación contable (Línea Recta)</div>
+      <div class="formula-line"><span class="lbl">Valor compra c/IVA</span><span class="val">${Q(eq.valorConIVA)}</span></div>
+      <div class="formula-line"><span class="lbl">÷ 1.12 → valor s/IVA</span><span class="val">${Q(c.vc)}</span></div>
+      <div class="formula-line"><span class="lbl">Dep. mensual (÷ ${vu})</span><span class="val warn">${Q(depMens)}/mes</span></div>
+      <div class="formula-line"><span class="lbl">Dep. acumulada (× ${c.meses}m)</span><span class="val warn">${Q(c.depA)} (${c.pctD}%)</span></div>
+      <div class="formula-line"><span class="lbl">Valor en libros${c.vlManualUsado?' ✎':''}</span>
+        <span class="val ${c.vl<=0?'red':'ok'}">${Q(c.vl)}${c.vl<=0?' (dep. 100%)':''}</span></div>
+      <div class="formula-eq">
+        ${Q(c.vc)} − ${Q(c.depA)}<br>
+        <div class="eq-result">= ${Q(c.vl)} valor en libros</div>
+      </div>
+    </div>`;
+
+  // Bloque 3: Fórmula de precio (tu fórmula Excel)
+  const baseLabel = c.sinRef
+    ? `Solo valor s/IVA (sin precio nuevo)`
+    : `PROMEDIO(${Q(c.vc)}, ${Q(eq.precioNuevo)})`;
+  const sinRefBadge = c.sinRef
+    ? `<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:4px;padding:4px 8px;font-size:.7rem;color:var(--warn);margin-bottom:8px">
+        ⚠ Sin precio de referencia — base = solo valor compra s/IVA
+       </div>` : '';
+  const reglaDesc = c.estadoNum >= 8.5
+    ? `Estado ≥ 8.5 → precio = H8 (equipo casi nuevo)`
+    : c.años >= 3
+      ? `Años ≥ 3 → precio = PROMEDIO(H9, H8×años/10)`
+      : `Caso normal → precio = PROMEDIO(H8, H9)`;
+  const bloque3 = `
+    <div class="desglose-block">
+      <div class="desglose-block-title">🧮 Fórmula de precio de venta</div>
+      ${sinRefBadge}
+      <div class="formula-line"><span class="lbl">Base = ${baseLabel}</span><span class="val">${Q(c.base)}</span></div>
+      <div style="margin:8px 0 4px;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Ajustes</div>
+      <div class="formula-line"><span class="lbl">H8 = Base × (${c.estadoNum}/10) → por estado</span><span class="val gold">${Q(c.h8)}</span></div>
+      <div class="formula-line"><span class="lbl">H9 = Base × 0.6667^${c.años.toFixed(2)} = Base × ${(c.factorDep*100).toFixed(1)}% → por dep.</span><span class="val warn">${Q(c.h9)}</span></div>
+      <div style="margin:8px 0 4px;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Regla aplicada</div>
+      <div style="font-size:.75rem;color:var(--cyan2);padding:4px 0">${reglaDesc}</div>
+      <div class="formula-eq">
+        ${c.estadoNum>=8.5
+          ? `H8 = ${Q(c.h8)}`
+          : c.años>=3
+            ? `PROMEDIO(H9=${Q(c.h9)}, H8×${c.años.toFixed(2)}/10=${Q(c.h8*c.años/10)})`
+            : `PROMEDIO(H8=${Q(c.h8)}, H9=${Q(c.h9)})`}
+        <div class="eq-result">= ${Q(c.pvMercado)} precio base</div>
+      </div>
+    </div>`;
+
+  // Bloque 4: Precio final
+  const minAbs = c.vc * 0.03;
+  const aplicoMinimo = c.pvMercado <= minAbs;
+  const bloque4 = `
+    <div class="desglose-block" style="border-color:var(--ok);border-width:2px">
+      <div class="desglose-block-title">🎯 Precio de venta final</div>
+      <div class="formula-line"><span class="lbl">Precio base (fórmula)</span><span class="val">${Q(c.pvMercado)}</span></div>
+      ${aplicoMinimo?`<div class="formula-line"><span class="lbl" style="color:var(--danger)">⚠ Se aplicó piso mínimo (3% del costo)</span><span class="val red">${Q(minAbs)}</span></div>`:''}
+      ${c.pct>0?`<div class="formula-line"><span class="lbl">× (1 + ${c.pct}% ganancia adicional)</span><span class="val">${Q(c.pv)}</span></div>`:''}
+      <div class="formula-line"><span class="lbl">Valor en libros (referencia)</span><span class="val ${c.vl<=0?'':'warn'}">${Q(c.vl)}${c.vl<=0?' (dep. 100%)':''}</span></div>
+      <div class="formula-eq">
+        ${c.pct>0?`${Q(c.pvMercado)} × ${(1+c.pct/100).toFixed(2)}`:Q(c.pvMercado)}
+        <div class="eq-result">= ${Q(c.pv)} 💰 precio de venta</div>
+      </div>
+      ${!c.sinRef&&eq.precioNuevo>0?`<div style="margin-top:8px;font-size:.72rem;color:var(--muted)">📊 Representa el <strong style="color:var(--navy)">${Math.round(c.pv/eq.precioNuevo*100)}%</strong> del precio nuevo (${Q(eq.precioNuevo)})</div>`:''}
+    </div>`;
+
+  return `
+    <div class="desglose-title">
+      🔍 Desglose del cálculo — <span style="color:var(--cyan2)">${eq.desc}</span>
+    </div>
+    <div class="desglose-grid">
+      ${bloque1}${bloque2}${bloque3}${bloque4}
+    </div>`;
+}
+
+
+function renderKPIs(){
+  let libros=0,mercado=0,venta=0,dep100=0;
+  const tipos={};
+  equipos.forEach(eq=>{
+    const c=calcEquipo(eq); if(!c) return;
+    libros+=c.vl; mercado+=c.vm; venta+=c.pv;
+    if(c.pctD>=100) dep100++;
+    tipos[eq.tipo]=(tipos[eq.tipo]||0)+1;
+  });
+  document.getElementById('kpiTotal').textContent=equipos.length;
+  document.getElementById('kpiTipos').textContent=Object.entries(tipos).map(([k,v])=>`${v} ${k}`).join(' · ')||'—';
+  document.getElementById('kpiLibros').textContent=Q(libros);
+  document.getElementById('kpiMercado').textContent=Q(mercado);
+  document.getElementById('kpiVenta').textContent=Q(venta);
+  document.getElementById('kpiDep100').textContent=dep100;
+}
+
+function recalcularTodo(){ renderTabla(); renderKPIs(); }
+
+// ── Editar ──
+function abrirEditar(i){
+  const eq=equipos[i];
+  document.getElementById('eDesc').value=eq.desc;
+  document.getElementById('eTipo').value=eq.tipo;
+  document.getElementById('eSerie').value=eq.serie;
+  document.getElementById('eEstado').value=eq.estado;
+  document.getElementById('eCargador').value=eq.cargador;
+  document.getElementById('eCPU').value=eq.cpu;
+  document.getElementById('eRAM').value=eq.ram;
+  document.getElementById('eStorTipo').value=eq.storTipo||'SSD NVMe';
+  document.getElementById('eStorCap').value=eq.storCap||'';
+  document.getElementById('ePantalla').value=eq.pantalla;
+  document.getElementById('eSO').value=eq.so;
+  const batPct = eq.bateriaPct!==null&&eq.bateriaPct!==undefined ? eq.bateriaPct : '';
+  document.getElementById('eBateriaPct').value=batPct;
+  // Actualizar label de batería
+  if(batPct!==''){
+    document.getElementById('eBateriaLabel').textContent=getBateriaLabel(batPct);
+    document.getElementById('eBateriaLabel').style.color='var(--navy)';
+  } else {
+    document.getElementById('eBateriaLabel').textContent='— No aplica';
+    document.getElementById('eBateriaLabel').style.color='var(--muted)';
+  }
+  document.getElementById('eFecha').value=eq.fecha;
+  document.getElementById('eValorIVA').value=eq.valorConIVA;
+  document.getElementById('ePrecioNuevo').value=eq.precioNuevo||'';
+  document.getElementById('eValorLibros').value=eq.valorLibrosManual||0;
+  document.getElementById('ePct').value=eq.pctGanancia!==''?eq.pctGanancia:'';
+  document.getElementById('editIdx').value=i;
+  document.getElementById('editModal').style.display='flex';
+  previewEdit();
+}
+
+function previewEdit(){
+  const vc    = document.getElementById('eValorIVA').value;
+  const fecha = document.getElementById('eFecha').value;
+  const estado= document.getElementById('eEstado').value;
+  const libros= document.getElementById('eValorLibros').value;
+  const pctIn = document.getElementById('ePct').value;
+  const pn    = document.getElementById('ePrecioNuevo').value;
+  const wrap  = document.getElementById('previewEditWrap');
+  if(!vc||!fecha){wrap.style.display='none';return;}
+  const fakeEq={valorConIVA:parseFloat(vc)||0,fecha,estado,
+    precioNuevo:parseFloat(pn)||0,
+    valorLibrosManual:parseFloat(libros)||0,
+    pctGanancia:pctIn!==''?parseFloat(pctIn):''};
+  const c=calcEquipo(fakeEq);
+  if(!c){wrap.style.display='none';return;}
+  document.getElementById('previewEditGrid').innerHTML=buildPreview(c);
+  wrap.style.display='block';
+}
+
+function guardarEdicion(){
+  const i=parseInt(document.getElementById('editIdx').value);
+  const pv=document.getElementById('ePct').value;
+  const batV=document.getElementById('eBateriaPct').value;
+  equipos[i]={
+    ...equipos[i],
+    desc:     document.getElementById('eDesc').value.trim(),
+    tipo:     document.getElementById('eTipo').value,
+    serie:    document.getElementById('eSerie').value.trim(),
+    estado:   document.getElementById('eEstado').value,
+    cargador: document.getElementById('eCargador').value,
+    cpu:      document.getElementById('eCPU').value.trim(),
+    ram:      document.getElementById('eRAM').value.trim(),
+    storTipo: document.getElementById('eStorTipo').value,
+    storCap:  document.getElementById('eStorCap').value.trim(),
+    pantalla: document.getElementById('ePantalla').value.trim(),
+    so:       document.getElementById('eSO').value.trim(),
+    bateriaPct: batV!==''?parseInt(batV):null,
+    fecha:    document.getElementById('eFecha').value,
+    valorConIVA:       parseFloat(document.getElementById('eValorIVA').value)||0,
+    precioNuevo:       parseFloat(document.getElementById('ePrecioNuevo').value)||0,
+    valorLibrosManual: parseFloat(document.getElementById('eValorLibros').value)||0,
+    pctGanancia:       pv!==''?parseFloat(pv):''
+  };
+  cerrarModal(); renderTabla(); renderKPIs();
+}
+
+function cerrarModal(){document.getElementById('editModal').style.display='none';}
+function eliminar(i){
+  if(!confirm(`¿Eliminar "${equipos[i].desc}"?`)) return;
+  equipos.splice(i,1); renderTabla(); renderKPIs();
+}
+
+// ── Fichas imprimibles ──
+function imprimirFichas(tipo='publica'){
+  if(!equipos.length){alert('No hay equipos.');return;}
+  const fr=fmtFecha(getFecha());
+
+  const fichas=equipos.map((eq)=>{
+    const c=calcEquipo(eq); if(!c) return '';
+    const storFicha=fmtStorage(eq.storTipo,eq.storCap);
+    const batFicha=getBateriaLabel(eq.bateriaPct);
+
+    if(tipo==='publica'){
+      // FICHA PÚBLICA: solo datos del equipo + precio, sin datos financieros
+      const specsRows=[
+        eq.cpu?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0;width:45%">Procesador</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${fmtCPU(eq.cpu)}</td></tr>`:'',
+        eq.ram?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">RAM</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${fmtRAM(eq.ram)}</td></tr>`:'',
+        storFicha?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Almacenamiento</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${storFicha}</td></tr>`:'',
+        eq.pantalla?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Pantalla</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${fmtPantalla(eq.pantalla)}</td></tr>`:'',
+        eq.so?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Sistema Operativo</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${eq.so}</td></tr>`:'',
+        batFicha?`<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Batería</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${batFicha}</td></tr>`:'',
+        `<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Cargador incluido</td><td style="font-size:.9rem;color:#1e3a5f;padding:6px 0;border-bottom:1px solid #f0f6fb">${eq.cargador}</td></tr>`,
+        `<tr><td style="color:#6b8caa;font-size:.85rem;padding:6px 16px 6px 0">Estado</td><td style="font-size:.9rem;padding:6px 0"><strong style="color:#1e3a5f">${eq.estado}</strong></td></tr>`,
+      ].filter(Boolean).join('');
+      const tieneSpecs = eq.modo===2 && specsRows.length>0;
+      const estadoColor = {Bueno:'#1a7a4a',Regular:'#d67000',Malo:'#c0392b',Obsoleto:'#6c757d'}[eq.estado]||'#1e3a5f';
+      const estadoBg    = {Bueno:'#d4edda',Regular:'#fff3cd',Malo:'#f8d7da',Obsoleto:'#e2e3e5'}[eq.estado]||'#e8f3fa';
+      return `<div style="border:2px solid #1e3a5f;border-radius:12px;overflow:hidden;margin-bottom:24px;page-break-inside:avoid;font-family:'Source Sans 3',sans-serif;max-width:580px;margin-left:auto;margin-right:auto">
+        <div style="background:#1e3a5f;padding:20px 24px;display:flex;justify-content:space-between;align-items:center">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:#ffffff;font-weight:700;line-height:1.2">${eq.desc}</div>
+            <div style="font-size:.75rem;color:#8ab4d4;margin-top:4px">${eq.tipo}${eq.serie?' &nbsp;·&nbsp; S/N: '+eq.serie:''}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:20px">
+            <div style="font-size:.6rem;color:#8ab4d4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Precio de venta</div>
+            <div style="font-family:'Playfair Display',serif;font-size:2.4rem;color:#4dd6a0;line-height:1">${Q(c.pv)}</div>
+            <div style="margin-top:6px"><span style="background:${estadoBg};color:${estadoColor};font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px">${eq.estado}</span></div>
+          </div>
+        </div>
+        ${tieneSpecs?`<div style="padding:18px 24px 4px">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;color:#6b8caa;margin-bottom:10px">Especificaciones técnicas</div>
+          <table style="width:100%;border-collapse:collapse">${specsRows}</table>
+        </div>`:''}
+        <div style="background:#f0f8fd;padding:10px 24px;margin-top:${tieneSpecs?'0':'16px'};display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:#6b8caa">
+          <div>📅 Valorado al <strong style="color:#1e3a5f">${fr}</strong></div>
+          <div>🗓 <strong style="color:#1e3a5f">${fmtFecha(eq.fecha)}</strong> · <strong style="color:#1e3a5f">${c.antStr}</strong> de uso</div>
+        </div>
+      </div>`;
+
+    } else {
+      // FICHA INTERNA: todos los datos financieros
+      const specsRows=[
+        eq.cpu?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Procesador</td><td style="font-size:.85rem">${fmtCPU(eq.cpu)}</td></tr>`:'',
+        eq.ram?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">RAM</td><td style="font-size:.85rem">${fmtRAM(eq.ram)}</td></tr>`:'',
+        storFicha?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Almacenamiento</td><td style="font-size:.85rem">${storFicha}</td></tr>`:'',
+        eq.pantalla?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Pantalla</td><td style="font-size:.85rem">${fmtPantalla(eq.pantalla)}</td></tr>`:'',
+        eq.so?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Sistema Op.</td><td style="font-size:.85rem">${eq.so}</td></tr>`:'',
+        batFicha?`<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Batería</td><td style="font-size:.85rem">${batFicha}</td></tr>`:'',
+        `<tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Cargador</td><td style="font-size:.85rem">${eq.cargador}</td></tr>`,
+      ].filter(Boolean).join('');
+      const tieneSpecs=eq.modo===2&&specsRows.length>0;
+      return `<div style="border:1px solid #c8dcea;border-radius:10px;padding:20px;margin-bottom:18px;page-break-inside:avoid;font-family:'Source Sans 3',sans-serif">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;border-bottom:1px solid #e0edf6;padding-bottom:12px">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:1.2rem;color:#1e3a5f">${eq.desc}</div>
+            <div style="font-size:.75rem;color:#6b8caa;margin-top:2px">${eq.tipo}${eq.serie?' · '+eq.serie:''}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.7rem;color:#6b8caa;text-transform:uppercase;letter-spacing:.05em">Precio de Venta</div>
+            <div style="font-family:'Playfair Display',serif;font-size:2rem;color:#1a7a4a">${Q(c.pv)}</div>
+            <div style="font-size:.72rem;color:#6b8caa">Estado: <strong style="color:#1e3a5f">${eq.estado}</strong> · Cargador: <strong style="color:#1e3a5f">${eq.cargador}</strong></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:${tieneSpecs?'1fr 1fr':'1fr'};gap:16px">
+          ${tieneSpecs?`<div><div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#6b8caa;margin-bottom:6px">Especificaciones</div><table style="width:100%">${specsRows}</table></div>`:''}
+          <div style="${tieneSpecs?'border-left:1px solid #c8dcea;padding-left:16px':''}">
+            <div style="font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:#6b8caa;margin-bottom:6px">Valoración interna al ${fr}</div>
+            <table style="width:100%">
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Fecha compra</td><td style="font-size:.85rem">${fmtFecha(eq.fecha)}</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Antigüedad</td><td style="font-size:.85rem">${c.antStr}</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Valor c/IVA</td><td style="font-size:.85rem">${Q(eq.valorConIVA)}</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Dep. acumulada</td><td style="font-size:.85rem;color:#d67000">${Q(c.depA)} (${c.pctD}%)</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Valor en libros</td><td style="font-size:.85rem">${Q(c.vl)}</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">Val. mercado est.</td><td style="font-size:.85rem;color:#b8860b">${Q(c.vm)}</td></tr>
+              <tr><td style="color:#6b8caa;font-size:.8rem;padding:2px 8px 2px 0">% Ganancia · Caso</td><td style="font-size:.85rem">${c.pct}% · Caso ${c.caso}</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    }
+  }).join('');
+
+  const titulo = tipo==='publica' ? 'Venta de Equipo de Cómputo' : 'Venta de Equipo — Control Interno';
+  document.getElementById('fichasWrap').innerHTML=`
+    <div style="text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #1e3a5f">
+      <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#1e3a5f">ERC Capital Corp — ${titulo}</div>
+      <div style="font-size:.85rem;color:#6b8caa;margin-top:4px">Fecha: ${fr} · ${equipos.length} equipo${equipos.length!==1?'s':''} · Vida útil: ${getVU()} meses</div>
+    </div>${fichas}`;
+  window.print();
+}
+
+
+// ── CSV ──
+function exportarCSV(){
+  if(!equipos.length){alert('No hay equipos.');return;}
+  const h=['#','Tipo','Descripción','Serie','Procesador','RAM','Tipo Almac.','Cap. Almac.',
+           'Pantalla','SO','Batería %','Estado Batería','Cargador',
+           'Fecha Compra','Antigüedad','Val. c/IVA','Val. s/IVA','Dep. Acum.','% Dep.',
+           'Val. Libros','Estado','Val. Mercado','Precio Nuevo Ref.',
+           '% Ganancia','Pv Libros/Mercado','Pv Nuevo','Precio Venta Final','Base Cálculo','Fecha Reporte'];
+  const fr=getFecha();
+  const rows=equipos.map((eq,i)=>{
+    const c=calcEquipo(eq); if(!c) return [];
+    const storStr=fmtStorage(eq.storTipo,eq.storCap);
+    return [i+1,eq.tipo,eq.desc,eq.serie||'',fmtCPU(eq.cpu)||'',fmtRAM(eq.ram)||'',
+            eq.storTipo||'',eq.storCap||'',fmtPantalla(eq.pantalla)||'',eq.so||'',
+            eq.bateriaPct!==null&&eq.bateriaPct!==undefined?eq.bateriaPct+'%':'',
+            getBateriaLabel(eq.bateriaPct),eq.cargador,
+            fmtFecha(eq.fecha),c.antStr,eq.valorConIVA,c.vc.toFixed(2),
+            c.depA.toFixed(2),c.pctD+'%',c.vl.toFixed(2),eq.estado,
+            c.vm.toFixed(2),eq.precioNuevo||0,
+            c.pct+'%',c.pvMercado.toFixed(2),
+            c.pv.toFixed(2),'Caso '+c.caso,fmtFecha(fr)];
+  }).filter(r=>r.length);
+  const csv=[h,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`venta_equipo_${fr}.csv`;
+  a.click();
+}
+
+function fmtFecha(s){
+  if(!s) return '—';
+  const m=String(s).match(/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
+  return m?`${String(m[3]).padStart(2,'0')}/${String(m[2]).padStart(2,'0')}/${m[1]}`:s;
+}
+
+document.getElementById('editModal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('editModal')) cerrarModal();
+});
+</script>
+</body>
+</html>
