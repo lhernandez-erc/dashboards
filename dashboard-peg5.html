@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEG5 — Dashboard Licitación Energía</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:     #1e3a5f;
+  --navy2:    #2d5282;
+  --cyan:     #00b4e0;
+  --cyan2:    #0099c2;
+  --ok:       #2e7d32;
+  --ok-bg:    #e8f5e9;
+  --warn:     #e65100;
+  --warn-bg:  #fff3e0;
+  --danger:   #c62828;
+  --danger-bg:#fdecea;
+  --yellow:   #f9a825;
+  --yellow-bg:#fffde7;
+  --bg:       #f0f5fa;
+  --border:   #c8dcea;
+  --muted:    #6b8caa;
+  --card:     #ffffff;
+  --shadow:   0 2px 12px rgba(30,58,95,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh;}
+
+.header{background:var(--navy);color:#fff;padding:16px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.header h1{font-size:1.2rem;font-weight:700;letter-spacing:.03em;}
+.header-fecha{font-size:.75rem;opacity:.65;font-family:'DM Mono',monospace;margin-left:auto;}
+
+.main{max-width:1400px;margin:0 auto;padding:24px 20px;}
+
+.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border);}
+.tab{padding:10px 22px;border:none;background:none;font-family:'Source Sans 3',sans-serif;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.tab.active{color:var(--navy);border-bottom-color:var(--cyan);}
+.tab:hover:not(.active){color:var(--navy);background:#f5f9fd;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.ponderado-box{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;border-radius:14px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;box-shadow:0 4px 16px rgba(30,58,95,0.2);}
+.ponderado-main{font-size:2.2rem;font-weight:700;font-family:'DM Mono',monospace;color:var(--cyan);}
+.ponderado-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;opacity:.7;margin-bottom:4px;}
+.ponderado-sub{font-size:.68rem;opacity:.55;margin-top:4px;}
+.total-energia{font-size:1.1rem;font-weight:700;font-family:'DM Mono',monospace;color:#fff;}
+
+.bloques-separados{display:flex;flex-direction:column;gap:28px;}
+
+.bloque-section{background:var(--card);border-radius:16px;box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+.bloque-section-header{padding:16px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);}
+.bloque-section-header.b1{background:linear-gradient(90deg,#e3f0ff 0%,#f7fbff 100%);border-bottom-color:#b8d4f0;}
+.bloque-section-header.b2{background:linear-gradient(90deg,#e0f4f1 0%,#f5fffe 100%);border-bottom-color:#b2e0d8;}
+.bloque-section-header.b3{background:linear-gradient(90deg,#f3e5f5 0%,#fdf5ff 100%);border-bottom-color:#dbb8e8;}
+.bloque-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;font-weight:700;}
+.b1 .bloque-icon{background:#1565c0;color:#fff;}
+.b2 .bloque-icon{background:#00695c;color:#fff;}
+.b3 .bloque-icon{background:#6a1b9a;color:#fff;}
+.bloque-section-title{font-size:.95rem;font-weight:700;}
+.b1 .bloque-section-title{color:#1565c0;}
+.b2 .bloque-section-title{color:#00695c;}
+.b3 .bloque-section-title{color:#6a1b9a;}
+.bloque-section-sub{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.bloque-badge-estado{margin-left:auto;font-size:.68rem;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
+.badge-dentro{background:var(--ok-bg);color:var(--ok);}
+.badge-fuera{background:var(--danger-bg);color:var(--danger);}
+.badge-neutro{background:#e3eaf2;color:var(--muted);}
+.bloque-ronda-badge{font-size:.68rem;font-weight:700;background:var(--cyan);color:#fff;padding:3px 12px;border-radius:12px;font-family:'DM Mono',monospace;margin-left:8px;}
+
+.bloque-body{display:grid;grid-template-columns:320px 1fr;gap:0;}
+@media(max-width:900px){.bloque-body{grid-template-columns:1fr;}}
+.bloque-left{padding:20px 24px;border-right:1px solid var(--border);}
+.bloque-right{padding:20px 24px;background:#fafcff;}
+
+.section-lbl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:8px;}
+.field-wrap{margin-bottom:12px;}
+.field-wrap label{display:block;font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
+.monomico-input{width:100%;border:2px solid var(--cyan);border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:1.05rem;font-weight:700;color:var(--navy);outline:none;background:#f0fbff;transition:all .2s;}
+.monomico-input:focus{border-color:var(--navy2);background:#fff;}
+.monomico-input.at-min{border-color:var(--yellow);background:var(--yellow-bg);}
+.monomico-input.below-min{border-color:var(--danger);background:var(--danger-bg);}
+.piso-hint{font-size:.65rem;margin-top:3px;}
+.piso-hint.ok{color:var(--ok);}
+.piso-hint.warn{color:var(--warn);font-weight:600;}
+.piso-hint.danger{color:var(--danger);font-weight:700;}
+
+.alert-piso{display:none;margin-top:8px;padding:7px 11px;border-radius:7px;font-size:.72rem;font-weight:600;line-height:1.4;}
+.alert-piso.show{display:block;}
+.alert-piso.warn{background:var(--warn-bg);color:var(--warn);border-left:3px solid var(--warn);}
+.alert-piso.danger{background:var(--danger-bg);color:var(--danger);border-left:3px solid var(--danger);}
+
+.calc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+.calc-box{background:#f0f5fa;border-radius:8px;padding:10px 12px;text-align:center;}
+.calc-box-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
+.calc-box-val{font-size:.92rem;font-weight:700;font-family:'DM Mono',monospace;color:var(--navy);}
+.calc-box-val.highlight{color:var(--cyan2);font-size:1rem;}
+
+.estado-row{display:flex;gap:8px;margin-bottom:12px;margin-top:14px;}
+.btn-estado{flex:1;padding:8px;border:2px solid var(--border);border-radius:8px;background:#fff;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.05em;}
+.btn-estado.dentro.active{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+.btn-estado.fuera.active{background:var(--danger-bg);border-color:var(--danger);color:var(--danger);}
+.btn-estado:hover:not(.active){background:#f0f5fa;}
+
+.reduccion-panel{background:#fff8f0;border:1px solid #ffcc80;border-radius:8px;padding:12px 14px;margin-bottom:12px;display:none;}
+.reduccion-panel.show{display:block;}
+.reduccion-title{font-size:.68rem;font-weight:700;color:var(--warn);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;}
+.reduccion-row{display:flex;gap:8px;align-items:center;}
+.reduccion-row label{font-size:.7rem;color:var(--muted);white-space:nowrap;}
+.reduccion-input{width:90px;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-family:'DM Mono',monospace;font-size:.88rem;color:var(--navy);outline:none;}
+.reduccion-input:focus{border-color:var(--cyan);}
+.btn-aplicar{padding:7px 14px;border:none;border-radius:6px;background:var(--warn);color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;}
+.btn-aplicar:hover{background:#bf360c;}
+.reduccion-preview{font-size:.68rem;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;}
+
+.btn-registrar{width:100%;padding:10px;border:none;border-radius:9px;background:var(--navy);color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.84rem;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:background .2s;}
+.btn-registrar:hover{background:var(--navy2);}
+.btn-registrar.success{background:var(--ok);}
+
+.bitacora-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.bitacora-title-lbl{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.btn-mini{padding:4px 10px;border-radius:5px;font-size:.68rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);}
+.btn-mini:hover{border-color:var(--danger);color:var(--danger);}
+.btn-mini-csv{color:var(--navy2);}
+.btn-mini-csv:hover{border-color:var(--cyan)!important;color:var(--cyan2)!important;}
+
+table.mini-bitacora{width:100%;border-collapse:collapse;font-size:.74rem;}
+table.mini-bitacora th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;}
+table.mini-bitacora td{padding:7px 10px;border-bottom:1px solid #eaf0f7;font-family:'DM Mono',monospace;vertical-align:middle;}
+table.mini-bitacora tr:hover td{background:#f5f9fd;}
+table.mini-bitacora tr:last-child td{border-bottom:none;}
+.empty-mini{text-align:center;padding:24px;color:var(--muted);font-size:.78rem;}
+.tag-d{background:var(--ok-bg);color:var(--ok);padding:2px 7px;border-radius:8px;font-size:.62rem;font-weight:700;font-family:'Source Sans 3',sans-serif;}
+.tag-f{background:var(--danger-bg);color:var(--danger);padding:2px 7px;border-radius:8px;font-size:.62rem;font-weight:700;font-family:'Source Sans 3',sans-serif;}
+.tag-p{background:#e3eaf2;color:var(--muted);padding:2px 7px;border-radius:8px;font-size:.62rem;font-weight:700;font-family:'Source Sans 3',sans-serif;}
+.btn-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:.82rem;padding:2px 5px;border-radius:3px;}
+.btn-del:hover{background:var(--danger-bg);color:var(--danger);}
+.warn-piso-row td{color:var(--danger)!important;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:24px 0 16px;}
+.divider-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);white-space:nowrap;}
+.divider-line{flex:1;height:1px;background:var(--border);}
+
+.oc-card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);padding:20px 24px;}
+.oc-grid{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:16px;align-items:end;}
+@media(max-width:800px){.oc-grid{grid-template-columns:1fr 1fr;}}
+.oc-box{background:#f0f5fa;border-radius:8px;padding:10px 14px;text-align:center;}
+.oc-lbl{font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px;}
+.oc-val{font-size:.95rem;font-weight:700;font-family:'DM Mono',monospace;color:var(--navy);}
+.oc-val.hl{color:var(--cyan2);}
+
+.config-section-lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:20px 0 10px;}
+.config-card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border);padding:20px 24px;margin-bottom:16px;}
+.config-card-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.cfg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+.cfg-field{display:flex;flex-direction:column;gap:4px;}
+.cfg-field label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.cfg-field input{border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-family:'Source Sans 3',sans-serif;font-size:.88rem;color:var(--navy);outline:none;background:#f7fbff;}
+.cfg-field input:focus{border-color:var(--cyan);background:#fff;}
+.cfg-field input.piso-input{border-color:#ffb74d;background:var(--yellow-bg);}
+.cfg-hint{font-size:.6rem;color:var(--muted);margin-top:2px;}
+
+.btn{padding:9px 20px;border:none;border-radius:8px;font-family:'Source Sans 3',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;letter-spacing:.04em;}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:var(--navy2);}
+.btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--cyan);color:var(--cyan2);}
+.btn-danger-soft{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger);}
+.actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div style="font-size:.6rem;opacity:.55;letter-spacing:.1em;text-transform:uppercase">ERC Capital Corp. · Guatemala</div>
+    <h1>PEG5 — Licitación Oferta Económica de Energía</h1>
+  </div>
+  <div class="header-fecha" id="fechaHeader"></div>
+</div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('licitacion',this)">⚡ Licitación por Bloque</button>
+    <button class="tab" onclick="showTab('resumen',this)">📊 Resumen General</button>
+    <button class="tab" onclick="showTab('config',this)">⚙ Configuración</button>
+  </div>
+
+  <!-- ══ TAB LICITACIÓN ══ -->
+  <div id="tab-licitacion" class="tab-content active">
+    <div class="ponderado-box">
+      <div>
+        <div class="ponderado-lbl">Monómico Ponderado ERC</div>
+        <div class="ponderado-main" id="kpi-ponderado">$0.000</div>
+        <div class="ponderado-sub">US$/MWh · ponderado por energía de cada bloque en tiempo real</div>
+      </div>
+      <div style="text-align:right">
+        <div class="ponderado-lbl">Energía Total Ofertada</div>
+        <div class="total-energia" id="kpi-energia-total">— MWh</div>
+      </div>
+    </div>
+
+    <div class="bloques-separados" id="bloques-container"></div>
+
+    <div class="divider">
+      <span class="divider-title">Opción de Compra</span>
+      <div class="divider-line"></div>
+    </div>
+    <div class="oc-card">
+      <div class="oc-grid">
+        <div class="cfg-field">
+          <label>Monómico Opción de Compra (US$/MWh)</label>
+          <input type="number" id="mono-compra" step="0.01" value="90.00" oninput="recalcular()"
+            style="border:1px solid var(--border);border-radius:7px;padding:8px 11px;font-size:.88rem;color:var(--navy);outline:none;background:#f7fbff;">
+        </div>
+        <div class="oc-box"><div class="oc-lbl">O&amp;M</div><div class="oc-val" id="oc-om">—</div></div>
+        <div class="oc-box"><div class="oc-lbl">Sin O&amp;M</div><div class="oc-val" id="oc-sin">—</div></div>
+        <div class="oc-box"><div class="oc-lbl">Precio Total Energía</div><div class="oc-val hl" id="oc-tot">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ TAB RESUMEN ══ -->
+  <div id="tab-resumen" class="tab-content">
+    <div class="config-card">
+      <div class="config-card-title">Todas las pujas registradas — Todos los bloques</div>
+      <div class="actions-row" style="margin-bottom:14px">
+        <button class="btn btn-outline" onclick="exportCSVTotal()">↓ Exportar todo en CSV</button>
+        <button class="btn btn-danger-soft" onclick="limpiarTodo()">🗑 Limpiar todo</button>
+      </div>
+      <div id="resumen-container"><div class="empty-mini" style="padding:32px">Sin pujas registradas aún.</div></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB CONFIGURACIÓN ══ -->
+  <div id="tab-config" class="tab-content">
+    <div class="config-section-lbl">Factores de Carga</div>
+    <div class="config-card">
+      <div class="config-card-title">FC por Distribuidor / Bloque</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><label>FC Bloque 1 — Pol Solar</label><input type="number" id="fc1" step="0.00001" value="0.78620" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>FC Bloque 2 — Oxec II</label><input type="number" id="fc2" step="0.00001" value="0.79820" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>FC Bloque 3 — Oxec</label><input type="number" id="fc3" step="0.00001" value="0.57940" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>FC Distribuidora</label><input type="number" id="fc-dist" step="0.00001" value="0.72200" oninput="guardarConfig();recalcular()"></div>
+      </div>
+    </div>
+
+    <div class="config-section-lbl">Energía por Bloque (MWh)</div>
+    <div class="config-card">
+      <div class="config-card-title">Energía Ofertada</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><label>Energía Bloque 1 (MWh)</label><input type="number" id="energia1" value="247925" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>Energía Bloque 2 (MWh)</label><input type="number" id="energia2" value="174798" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>Energía Bloque 3 (MWh)</label><input type="number" id="energia3" value="76130" oninput="guardarConfig();recalcular()"></div>
+      </div>
+    </div>
+
+    <div class="config-section-lbl">Precio de Potencia (US$/kW mes)</div>
+    <div class="config-card">
+      <div class="config-card-title">Precio Potencia</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><label>Potencia Bloque 1</label><input type="number" id="pot1" step="0.01" value="35.00" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>Potencia Bloque 2</label><input type="number" id="pot2" step="0.01" value="35.00" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>Potencia Bloque 3</label><input type="number" id="pot3" step="0.01" value="35.00" oninput="guardarConfig();recalcular()"></div>
+        <div class="cfg-field"><label>Potencia Opción de Compra</label><input type="number" id="pot-compra" step="0.01" value="35.00" oninput="guardarConfig();recalcular()"></div>
+      </div>
+    </div>
+
+    <div class="config-section-lbl">🛑 Pisos Mínimos — No licitar por debajo</div>
+    <div class="config-card" style="border:2px solid #ffb74d">
+      <div class="config-card-title" style="color:var(--warn)">Monómico Mínimo Aceptable por Bloque (US$/MWh)</div>
+      <div class="cfg-grid">
+        <div class="cfg-field"><label>Piso Mínimo Bloque 1</label><input type="number" class="piso-input" id="piso1" step="0.01" value="70.00" oninput="guardarConfig();recalcular()"><span class="cfg-hint">⚠ Por debajo = mala inversión</span></div>
+        <div class="cfg-field"><label>Piso Mínimo Bloque 2</label><input type="number" class="piso-input" id="piso2" step="0.01" value="70.00" oninput="guardarConfig();recalcular()"><span class="cfg-hint">⚠ Por debajo = mala inversión</span></div>
+        <div class="cfg-field"><label>Piso Mínimo Bloque 3</label><input type="number" class="piso-input" id="piso3" step="0.01" value="70.00" oninput="guardarConfig();recalcular()"><span class="cfg-hint">⚠ Por debajo = mala inversión</span></div>
+      </div>
+    </div>
+
+    <div class="config-section-lbl">🛑 Precio Potencia — Rango Aceptable por Bloque</div>
+    <div class="config-card" style="border:2px solid #ffb74d">
+      <div class="config-card-title" style="color:var(--warn)">Precio Potencia Mínimo y Máximo por Bloque (US$/kW mes)</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+        <!-- BLOQUE 1 -->
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #1565c0">Bloque 1 — Pol Solar</div>
+          <div class="cfg-field" style="margin-bottom:10px">
+            <label>Potencia Mínima</label>
+            <input type="number" class="piso-input" id="pot-min1" step="0.01" value="30.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">⚠ Por debajo = mala inversión</span>
+          </div>
+          <div class="cfg-field">
+            <label>Potencia Máxima</label>
+            <input type="number" style="border:1px solid #81c784;border-radius:7px;padding:8px 11px;font-size:.88rem;color:var(--navy);outline:none;background:#f1f8e9;" id="pot-max1" step="0.01" value="40.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">✓ No superar este valor</span>
+          </div>
+        </div>
+        <!-- BLOQUE 2 -->
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:#00695c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #00695c">Bloque 2 — Oxec II</div>
+          <div class="cfg-field" style="margin-bottom:10px">
+            <label>Potencia Mínima</label>
+            <input type="number" class="piso-input" id="pot-min2" step="0.01" value="30.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">⚠ Por debajo = mala inversión</span>
+          </div>
+          <div class="cfg-field">
+            <label>Potencia Máxima</label>
+            <input type="number" style="border:1px solid #81c784;border-radius:7px;padding:8px 11px;font-size:.88rem;color:var(--navy);outline:none;background:#f1f8e9;" id="pot-max2" step="0.01" value="40.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">✓ No superar este valor</span>
+          </div>
+        </div>
+        <!-- BLOQUE 3 -->
+        <div>
+          <div style="font-size:.68rem;font-weight:700;color:#6a1b9a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #6a1b9a">Bloque 3 — Oxec</div>
+          <div class="cfg-field" style="margin-bottom:10px">
+            <label>Potencia Mínima</label>
+            <input type="number" class="piso-input" id="pot-min3" step="0.01" value="30.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">⚠ Por debajo = mala inversión</span>
+          </div>
+          <div class="cfg-field">
+            <label>Potencia Máxima</label>
+            <input type="number" style="border:1px solid #81c784;border-radius:7px;padding:8px 11px;font-size:.88rem;color:var(--navy);outline:none;background:#f1f8e9;" id="pot-max3" step="0.01" value="40.00" oninput="guardarConfig();recalcular()">
+            <span class="cfg-hint">✓ No superar este valor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="guardarConfig();alert('Configuración guardada ✓')">💾 Guardar Configuración</button>
+      <button class="btn btn-outline" onclick="resetConfig()">↺ Restablecer valores</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BLOQUES_DEF = [
+  { id:1, nombre:'Bloque 1', sub:'Pol Solar',  color:'#1565c0', headerClass:'b1' },
+  { id:2, nombre:'Bloque 2', sub:'Oxec II',    color:'#00695c', headerClass:'b2' },
+  { id:3, nombre:'Bloque 3', sub:'Oxec',       color:'#6a1b9a', headerClass:'b3' },
+];
+
+let bitacoras = {1:[],2:[],3:[]};
+let estados   = {1:null,2:null,3:null};
+
+// ── STORAGE ──
+function cargarStorage(){
+  try{
+    const b=localStorage.getItem('peg5_bit_v3'); if(b) bitacoras=JSON.parse(b);
+    const e=localStorage.getItem('peg5_est_v3'); if(e) estados=JSON.parse(e);
+    const c=localStorage.getItem('peg5_cfg_v3');
+    if(c){ const cfg=JSON.parse(c); Object.entries(cfg).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; }); }
+  }catch(err){}
+}
+function guardarStorage(){ localStorage.setItem('peg5_bit_v3',JSON.stringify(bitacoras)); localStorage.setItem('peg5_est_v3',JSON.stringify(estados)); }
+function guardarConfig(){
+  const ids=['fc1','fc2','fc3','fc-dist','energia1','energia2','energia3','pot1','pot2','pot3','pot-compra','piso1','piso2','piso3','mono1','mono2','mono3','mono-compra','pot-min1','pot-min2','pot-min3','pot-max1','pot-max2','pot-max3'];
+  const cfg={}; ids.forEach(id=>{ const el=document.getElementById(id); if(el) cfg[id]=el.value; });
+  localStorage.setItem('peg5_cfg_v3',JSON.stringify(cfg));
+}
+function resetConfig(){ if(!confirm('¿Restablecer valores por defecto?')) return; localStorage.removeItem('peg5_cfg_v3'); location.reload(); }
+
+// ── FÓRMULAS ──
+// Precio Energía Bloque = Monómico - (Potencia * 12 / FC / 8760) * 1000
+function calcPrecioEnergia(mono, pot, fc){
+  if(!fc) return mono;
+  return parseFloat((mono - (pot * 12 / fc / 8760) * 1000).toFixed(4));
+}
+// O&M = REDONDEAR.MENOS((PrecioEnergia / 1.1) * 0.1, 2)
+function calcOM(precioEnergia){ return Math.floor((precioEnergia/1.1)*0.1*100)/100; }
+// Sin O&M = PrecioEnergia - O&M
+function calcSinOM(precioEnergia, om){ return parseFloat((precioEnergia - om).toFixed(4)); }
+// Precio Total = O&M + Sin O&M
+function calcTotal(om, sinOM){ return parseFloat((om + sinOM).toFixed(4)); }
+function fmtUSD(n,d=2){ if(n===null||isNaN(n)) return '—'; return (n<0?'-$':'$')+Math.abs(n).toFixed(d); }
+function fmtN(n){ return n.toLocaleString('es-GT'); }
+
+// ── BUILD BLOQUE CARDS ──
+function buildBloques(){
+  const c=document.getElementById('bloques-container'); c.innerHTML='';
+  BLOQUES_DEF.forEach(b=>{
+    const mono = parseFloat(document.getElementById(`mono${b.id}`)?.value)||78;
+    const potVal = parseFloat(document.getElementById(`pot${b.id}`)?.value)||35;
+    const div=document.createElement('div'); div.className='bloque-section'; div.id=`sec-b${b.id}`;
+    div.innerHTML=`
+      <div class="bloque-section-header ${b.headerClass}">
+        <div class="bloque-icon ${b.headerClass}">B${b.id}</div>
+        <div>
+          <div class="bloque-section-title ${b.headerClass}">${b.nombre} — ${b.sub}</div>
+          <div class="bloque-section-sub">FC: <span id="fc-lbl-${b.id}">—</span> · Energía: <span id="e-lbl-${b.id}">—</span> MWh</div>
+        </div>
+        <span class="bloque-badge-estado badge-neutro" id="badge-b${b.id}">Pendiente</span>
+        <span class="bloque-ronda-badge" id="ronda-lbl-${b.id}">R1</span>
+      </div>
+      <div class="bloque-body">
+        <div class="bloque-left">
+          <div class="section-lbl">Datos de entrada</div>
+          <div class="field-wrap">
+            <label>Monómico ${b.nombre} (US$/MWh)</label>
+            <input type="number" class="monomico-input" id="mono${b.id}" step="0.01" value="${mono}" oninput="recalcular()" placeholder="Ej: 78.00">
+            <div class="piso-hint" id="ph-${b.id}">Piso mín: — · Margen: —</div>
+          </div>
+          <div class="alert-piso" id="ap-${b.id}"></div>
+          <div class="field-wrap">
+            <label>Precio Potencia ${b.nombre} (US$/kW mes)</label>
+            <input type="number" id="pot${b.id}" step="0.01" value="${potVal}" oninput="recalcular()" placeholder="Ej: 35.00"
+              style="width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-family:'DM Mono',monospace;font-size:.92rem;color:var(--navy);outline:none;background:#f7fbff;transition:border-color .2s;">
+            <div class="piso-hint" id="pot-hint-${b.id}">Rango: — · —</div>
+            <div class="alert-piso" id="pot-alert-${b.id}"></div>
+          </div>
+
+          <button class="btn-registrar" id="breg-${b.id}" onclick="registrarPuja(${b.id})">📌 Registrar Puja — ${b.nombre}</button>
+
+          <!-- Panel resultado sistema — aparece tras registrar -->
+          <div id="panel-resultado-${b.id}" style="display:none;margin-top:14px;background:#f0f8ff;border:2px solid var(--cyan);border-radius:10px;padding:14px 16px;">
+            <div style="font-size:.72rem;font-weight:700;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">
+              📡 ¿Qué dijo el sistema de licitación?
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onclick="confirmarEstado(${b.id},'dentro')"
+                style="flex:1;padding:10px;border:2px solid var(--ok);border-radius:8px;background:var(--ok-bg);color:var(--ok);font-weight:700;font-size:.82rem;cursor:pointer;letter-spacing:.04em;">
+                ✓ Estoy DENTRO
+              </button>
+              <button onclick="confirmarEstado(${b.id},'fuera')"
+                style="flex:1;padding:10px;border:2px solid var(--danger);border-radius:8px;background:var(--danger-bg);color:var(--danger);font-weight:700;font-size:.82rem;cursor:pointer;letter-spacing:.04em;">
+                ✗ Estoy FUERA
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel reducción — aparece si está fuera -->
+          <div class="reduccion-panel" id="rp-${b.id}">
+            <div class="reduccion-title">⚠ Estás fuera — Ingresa el % que solicita bajar el sistema</div>
+            <div class="reduccion-row">
+              <label>% a bajar:</label>
+              <input type="number" class="reduccion-input" id="pct-${b.id}" step="0.01" placeholder="Ej: 2.5" oninput="previewReduccion(${b.id})">
+              <button class="btn-aplicar" onclick="aplicarReduccion(${b.id})">Aplicar</button>
+            </div>
+            <div class="reduccion-preview" id="prev-${b.id}"></div>
+          </div>
+        </div>
+        <div class="bloque-right">
+          <div class="section-lbl">Cálculos automáticos</div>
+          <div class="calc-grid" style="grid-template-columns:1fr 1fr">
+            <div class="calc-box" style="grid-column:1/-1;background:#eef6ff;border:1px solid #b8d4f0">
+              <div class="calc-box-lbl" style="color:var(--navy2)">Precio Energía Bloque (US$/MWh) = Mon. − (Pot × 12 / FC / 8760) × 1000</div>
+              <div class="calc-box-val" style="color:var(--navy2);font-size:1.1rem" id="pe-${b.id}">—</div>
+            </div>
+            <div class="calc-box">
+              <div class="calc-box-lbl">O&amp;M (US$/MWh)</div>
+              <div class="calc-box-val" id="om-${b.id}">—</div>
+            </div>
+            <div class="calc-box">
+              <div class="calc-box-lbl">Precio Energía Sin O&amp;M</div>
+              <div class="calc-box-val" id="so-${b.id}">—</div>
+            </div>
+          </div>
+          <div class="calc-box" style="background:#e8f5ff;border:2px solid var(--cyan);border-radius:8px;padding:12px 14px;text-align:center;margin-bottom:16px">
+            <div class="calc-box-lbl" style="color:var(--cyan2)">Precio Total Energía (US$/MWh)</div>
+            <div class="calc-box-val highlight" style="font-size:1.3rem" id="to-${b.id}">—</div>
+          </div>
+          <div class="bitacora-header">
+            <span class="bitacora-title-lbl">📋 Bitácora ${b.nombre}</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn-mini btn-mini-csv" onclick="exportCSVBloque(${b.id})">↓ CSV</button>
+              <button class="btn-mini" onclick="limpiarBloque(${b.id})">🗑 Limpiar</button>
+            </div>
+          </div>
+          <div id="bit-${b.id}"><div class="empty-mini">Sin pujas registradas aún.</div></div>
+        </div>
+      </div>`;
+    c.appendChild(div);
+  });
+}
+
+// ── RECALCULAR ──
+function recalcular(){
+  guardarConfig();
+  let pN=0,pD=0,eT=0;
+  BLOQUES_DEF.forEach(b=>{
+    const mono=parseFloat(document.getElementById(`mono${b.id}`)?.value)||0;
+    const ener=parseFloat(document.getElementById(`energia${b.id}`)?.value)||0;
+    const piso=parseFloat(document.getElementById(`piso${b.id}`)?.value)||0;
+    const fc  =parseFloat(document.getElementById(`fc${b.id}`)?.value)||0;
+    const pot          = parseFloat(document.getElementById(`pot${b.id}`)?.value)||0;
+    const precioEnergia = calcPrecioEnergia(mono, pot, fc);
+    const om            = calcOM(precioEnergia);
+    const sinOM         = calcSinOM(precioEnergia, om);
+    const total         = calcTotal(om, sinOM);
+    pN+=mono*ener; pD+=ener; eT+=ener;
+    const ppEl=document.getElementById(`pp-${b.id}`);
+    const omEl=document.getElementById(`om-${b.id}`), soEl=document.getElementById(`so-${b.id}`), toEl=document.getElementById(`to-${b.id}`);
+    if(ppEl) ppEl.textContent=fmtUSD(pot,2);
+    const peEl=document.getElementById(`pe-${b.id}`);
+    if(peEl) peEl.textContent=fmtUSD(precioEnergia);
+    if(omEl) omEl.textContent=fmtUSD(om);
+    if(soEl) soEl.textContent=fmtUSD(sinOM);
+    if(toEl) toEl.textContent=fmtUSD(total);
+    const fcL=document.getElementById(`fc-lbl-${b.id}`), eL=document.getElementById(`e-lbl-${b.id}`);
+    if(fcL) fcL.textContent=fc.toFixed(5);
+    if(eL)  eL.textContent=fmtN(ener);
+    const ph=document.getElementById(`ph-${b.id}`), ap=document.getElementById(`ap-${b.id}`), inp=document.getElementById(`mono${b.id}`);
+    if(!ph||!ap||!inp) return;
+    const diff=parseFloat((mono-piso).toFixed(2));
+    inp.classList.remove('at-min','below-min'); ap.classList.remove('show','warn','danger');
+    if(mono<piso){
+      inp.classList.add('below-min');
+      ap.textContent=`🛑 Por debajo del piso mínimo ($${piso.toFixed(2)}). ¡MALA INVERSIÓN! Diferencia: -$${Math.abs(diff).toFixed(2)}`;
+      ap.classList.add('show','danger');
+      ph.textContent=`Piso: $${piso.toFixed(2)} ← ¡MALA INVERSIÓN!`; ph.className='piso-hint danger';
+    } else if(diff<=2){
+      inp.classList.add('at-min');
+      ap.textContent=`⚠ Muy cerca del piso mínimo ($${piso.toFixed(2)}). Margen: $${diff.toFixed(2)}`;
+      ap.classList.add('show','warn');
+      ph.textContent=`Piso: $${piso.toFixed(2)} · Margen: $${diff.toFixed(2)}`; ph.className='piso-hint warn';
+    } else {
+      ph.textContent=`Piso: $${piso.toFixed(2)} · Margen disponible: $${diff.toFixed(2)}`; ph.className='piso-hint ok';
+    }
+
+    // ── Validación Precio Potencia min/max ──
+    const potMin  = parseFloat(document.getElementById(`pot-min${b.id}`)?.value)||0;
+    const potMax  = parseFloat(document.getElementById(`pot-max${b.id}`)?.value)||0;
+    const potHint = document.getElementById(`pot-hint-${b.id}`);
+    const potAlert= document.getElementById(`pot-alert-${b.id}`);
+    const potInp  = document.getElementById(`pot${b.id}`);
+    if(potHint && potAlert && potInp){
+      potInp.style.border = '1px solid var(--border)';
+      potInp.style.background = '#f7fbff';
+      potAlert.classList.remove('show','warn','danger');
+      if(potMin>0 && pot < potMin){
+        potInp.style.border='2px solid var(--danger)'; potInp.style.background='var(--danger-bg)';
+        potAlert.textContent=`🛑 Potencia por debajo del mínimo ($${potMin.toFixed(2)}). ¡MALA INVERSIÓN!`;
+        potAlert.classList.add('show','danger');
+        potHint.textContent=`Rango: $${potMin.toFixed(2)} – $${potMax.toFixed(2)} ← ¡BAJO EL MÍNIMO!`; potHint.className='piso-hint danger';
+      } else if(potMax>0 && pot > potMax){
+        potInp.style.border='2px solid var(--warn)'; potInp.style.background='var(--warn-bg)';
+        potAlert.textContent=`⚠ Potencia supera el máximo permitido ($${potMax.toFixed(2)}).`;
+        potAlert.classList.add('show','warn');
+        potHint.textContent=`Rango: $${potMin.toFixed(2)} – $${potMax.toFixed(2)} ← SUPERA EL MÁXIMO`; potHint.className='piso-hint warn';
+      } else if(potMin>0||potMax>0){
+        potHint.textContent=`Rango permitido: $${potMin.toFixed(2)} – $${potMax.toFixed(2)}`; potHint.className='piso-hint ok';
+      }
+    }
+    const rl=document.getElementById(`ronda-lbl-${b.id}`);
+    if(rl) rl.textContent=`R${bitacoras[b.id].length+1}`;
+  });
+  // Opción compra
+  const mC=parseFloat(document.getElementById('mono-compra')?.value)||0;
+  const omC=calcOM(mC),sC=calcSinOM(mC,omC),tC=calcTotal(omC,sC);
+  const ocO=document.getElementById('oc-om'),ocS=document.getElementById('oc-sin'),ocT=document.getElementById('oc-tot');
+  if(ocO) ocO.textContent=fmtUSD(omC); if(ocS) ocS.textContent=fmtUSD(sC); if(ocT) ocT.textContent=fmtUSD(tC);
+  // Ponderado
+  const p=pD>0?pN/pD:0;
+  const pe=document.getElementById('kpi-ponderado'), et=document.getElementById('kpi-energia-total');
+  if(pe) pe.textContent=fmtUSD(p);
+  if(et) et.textContent=fmtN(eT)+' MWh';
+}
+
+function previewReduccion(bid){
+  const mono=parseFloat(document.getElementById(`mono${bid}`)?.value)||0;
+  const pct=parseFloat(document.getElementById(`pct-${bid}`)?.value)||0;
+  const prev=document.getElementById(`prev-${bid}`);
+  if(!prev) return;
+  if(pct>0&&pct<100){ const n=(mono*(1-pct/100)).toFixed(4); prev.textContent=`Nuevo monómico: $${n} (reducción de $${(mono-parseFloat(n)).toFixed(4)})`; }
+  else prev.textContent='';
+}
+
+// ── ESTADO ──
+function setEstado(bid,estado){
+  estados[bid]=estado; guardarStorage();
+  const bdEl=document.getElementById(`bd-${bid}`), bfEl=document.getElementById(`bf-${bid}`);
+  const badge=document.getElementById(`badge-b${bid}`), panel=document.getElementById(`rp-${bid}`);
+  bdEl.classList.toggle('active',estado==='dentro'); bfEl.classList.toggle('active',estado==='fuera');
+  if(estado==='dentro'){
+    badge.textContent='✓ Dentro'; badge.className='bloque-badge-estado badge-dentro'; panel.classList.remove('show');
+  } else {
+    badge.textContent='✗ Fuera'; badge.className='bloque-badge-estado badge-fuera'; panel.classList.add('show');
+  }
+}
+
+// ── REDUCCIÓN ──
+function aplicarReduccion(bid){
+  const inp=document.getElementById(`mono${bid}`), pctEl=document.getElementById(`pct-${bid}`);
+  const mono=parseFloat(inp.value)||0, pct=parseFloat(pctEl.value)||0;
+  if(pct<=0||pct>=100){alert('Ingresa un % válido.');return;}
+  const nuevo=parseFloat((mono*(1-pct/100)).toFixed(4));
+  if(!confirm(`¿Aplicar reducción de ${pct}% al Bloque ${bid}?\n\nActual: $${mono.toFixed(4)}\nNuevo:  $${nuevo.toFixed(4)}`)) return;
+  inp.value=nuevo.toFixed(4); pctEl.value='';
+  document.getElementById(`prev-${bid}`).textContent=''; document.getElementById(`rp-${bid}`).classList.remove('show');
+  estados[bid]=null; document.getElementById(`bd-${bid}`).classList.remove('active'); document.getElementById(`bf-${bid}`).classList.remove('active');
+  document.getElementById(`badge-b${bid}`).textContent='Pendiente'; document.getElementById(`badge-b${bid}`).className='bloque-badge-estado badge-neutro';
+  guardarStorage(); recalcular();
+}
+
+// ── REGISTRAR PUJA ──
+function registrarPuja(bid){
+  const mono=parseFloat(document.getElementById(`mono${bid}`)?.value)||0;
+  const pot =parseFloat(document.getElementById(`pot${bid}`)?.value)||0;
+  const fc  =parseFloat(document.getElementById(`fc${bid}`)?.value)||0;
+  const piso=parseFloat(document.getElementById(`piso${bid}`)?.value)||0;
+  const precioEnergia=calcPrecioEnergia(mono,pot,fc);
+  const om=calcOM(precioEnergia), sinOM=calcSinOM(precioEnergia,om), total=calcTotal(om,sinOM);
+  const ronda = bitacoras[bid].length+1;
+
+  // Guardar puja pendiente de estado
+  const registro = { id:Date.now(), ronda, ts:new Date().toLocaleString('es-GT'), mono, pot, om, sinOM, total, piso, estado:null, bajoPiso:mono<piso };
+  bitacoras[bid].push(registro);
+  guardarStorage(); renderBit(bid); recalcular();
+
+  // Mostrar panel de resultado del sistema
+  mostrarPanelEstado(bid, registro.id);
+}
+
+function mostrarPanelEstado(bid, registroId){
+  const panel = document.getElementById(`panel-resultado-${bid}`);
+  if(!panel) return;
+  panel.dataset.registroId = registroId;
+  panel.style.display = 'block';
+  // Scroll suave al panel
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function confirmarEstado(bid, estado){
+  const panel = document.getElementById(`panel-resultado-${bid}`);
+  const registroId = parseInt(panel.dataset.registroId);
+  const reg = bitacoras[bid].find(r=>r.id===registroId);
+  if(reg) reg.estado = estado;
+  estados[bid] = estado;
+  guardarStorage(); renderBit(bid);
+  panel.style.display = 'none';
+
+  // Si está fuera, mostrar panel de reducción
+  const bdEl=document.getElementById(`bd-${bid}`), bfEl=document.getElementById(`bf-${bid}`);
+  const badge=document.getElementById(`badge-b${bid}`), rp=document.getElementById(`rp-${bid}`);
+  if(bdEl) bdEl.classList.toggle('active', estado==='dentro');
+  if(bfEl) bfEl.classList.toggle('active', estado==='fuera');
+  if(estado==='dentro'){
+    if(badge){ badge.textContent='✓ Dentro'; badge.className='bloque-badge-estado badge-dentro'; }
+    if(rp) rp.classList.remove('show');
+  } else {
+    if(badge){ badge.textContent='✗ Fuera'; badge.className='bloque-badge-estado badge-fuera'; }
+    if(rp) rp.classList.add('show');
+  }
+}
+
+// ── RENDER BITÁCORA ──
+function renderBit(bid){
+  const c=document.getElementById(`bit-${bid}`); const data=bitacoras[bid];
+  if(!data||data.length===0){c.innerHTML='<div class="empty-mini">Sin pujas registradas aún.</div>';return;}
+  let h=`<table class="mini-bitacora"><thead><tr><th>Ronda</th><th>Fecha/Hora</th><th>Monómico</th><th>O&M</th><th>Sin O&M</th><th>Total</th><th>Piso</th><th>Estado</th><th></th></tr></thead><tbody>`;
+  [...data].reverse().forEach(r=>{
+    const tag=r.estado==='dentro'?'<span class="tag-d">✓ Dentro</span>':r.estado==='fuera'?'<span class="tag-f">✗ Fuera</span>':'<span class="tag-p">—</span>';
+    const cls=r.bajoPiso?' class="warn-piso-row"':'';
+    h+=`<tr${cls}><td><strong>R${r.ronda}</strong></td><td style="font-size:.67rem;color:var(--muted)">${r.ts}</td><td>${fmtUSD(r.mono)}${r.bajoPiso?' ⚠':''}</td><td>${fmtUSD(r.om)}</td><td>${fmtUSD(r.sinOM)}</td><td style="font-weight:700">${fmtUSD(r.total)}</td><td style="color:var(--muted)">${fmtUSD(r.piso,2)}</td><td>${tag}</td><td><button class="btn-del" onclick="delPuja(${bid},${r.id})">✕</button></td></tr>`;
+  });
+  h+='</tbody></table>'; c.innerHTML=h;
+}
+
+function delPuja(bid,id){ if(!confirm('¿Eliminar esta puja?')) return; bitacoras[bid]=bitacoras[bid].filter(r=>r.id!==id); guardarStorage(); renderBit(bid); recalcular(); }
+function limpiarBloque(bid){ if(!confirm(`¿Limpiar bitácora del Bloque ${bid}?`)) return; bitacoras[bid]=[]; guardarStorage(); renderBit(bid); recalcular(); }
+function limpiarTodo(){ if(!confirm('¿Eliminar TODA la bitácora?')) return; bitacoras={1:[],2:[],3:[]}; guardarStorage(); [1,2,3].forEach(b=>renderBit(b)); renderResumen(); recalcular(); }
+
+function renderResumen(){
+  const c=document.getElementById('resumen-container'); if(!c) return;
+  const all=[...bitacoras[1].map(r=>({...r,bid:1})),...bitacoras[2].map(r=>({...r,bid:2})),...bitacoras[3].map(r=>({...r,bid:3}))].sort((a,b)=>a.id-b.id);
+  if(all.length===0){c.innerHTML='<div class="empty-mini" style="padding:32px">Sin pujas registradas aún.</div>';return;}
+  let h=`<table class="mini-bitacora"><thead><tr><th>#</th><th>Bloque</th><th>Ronda</th><th>Fecha/Hora</th><th>Monómico</th><th>O&M</th><th>Sin O&M</th><th>Total</th><th>Piso</th><th>Estado</th></tr></thead><tbody>`;
+  all.forEach((r,i)=>{
+    const bN=`Bloque ${r.bid}`;
+    const tag=r.estado==='dentro'?'<span class="tag-d">✓ Dentro</span>':r.estado==='fuera'?'<span class="tag-f">✗ Fuera</span>':'<span class="tag-p">—</span>';
+    const cls=r.bajoPiso?' class="warn-piso-row"':'';
+    h+=`<tr${cls}><td>${i+1}</td><td style="font-weight:600;color:var(--navy2)">${bN}</td><td><strong>R${r.ronda}</strong></td><td style="font-size:.67rem;color:var(--muted)">${r.ts}</td><td>${fmtUSD(r.mono)}${r.bajoPiso?' ⚠':''}</td><td>${fmtUSD(r.om)}</td><td>${fmtUSD(r.sinOM)}</td><td style="font-weight:700">${fmtUSD(r.total)}</td><td>${fmtUSD(r.piso,2)}</td><td>${tag}</td></tr>`;
+  });
+  h+='</tbody></table>'; c.innerHTML=h;
+}
+
+function exportCSVBloque(bid){
+  const data=bitacoras[bid]; if(!data||data.length===0){alert(`Sin datos en Bloque ${bid}.`);return;}
+  const h=['Ronda','Fecha/Hora','Monómico','O&M','Sin O&M','Total','Piso','Estado','Bajo Piso'];
+  const rows=data.map(r=>['R'+r.ronda,r.ts,r.mono.toFixed(4),r.om.toFixed(2),r.sinOM.toFixed(4),r.total.toFixed(4),r.piso.toFixed(2),r.estado||'Pendiente',r.bajoPiso?'SÍ':'NO']);
+  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`PEG5_Bloque${bid}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+function exportCSVTotal(){
+  const all=[...bitacoras[1].map(r=>({...r,bid:1})),...bitacoras[2].map(r=>({...r,bid:2})),...bitacoras[3].map(r=>({...r,bid:3}))].sort((a,b)=>a.id-b.id);
+  if(all.length===0){alert('Sin datos.');return;}
+  const h=['Bloque','Ronda','Fecha/Hora','Monómico','O&M','Sin O&M','Total','Piso','Estado','Bajo Piso'];
+  const rows=all.map(r=>[`Bloque ${r.bid}`,'R'+r.ronda,r.ts,r.mono.toFixed(4),r.om.toFixed(2),r.sinOM.toFixed(4),r.total.toFixed(4),r.piso.toFixed(2),r.estado||'Pendiente',r.bajoPiso?'SÍ':'NO']);
+  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`PEG5_TodasPujas_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active'); btn.classList.add('active');
+  if(name==='resumen') renderResumen();
+}
+
+function updateFecha(){ const now=new Date(); const el=document.getElementById('fechaHeader'); if(el) el.textContent=now.toLocaleDateString('es-GT',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · '+now.toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}); }
+
+document.addEventListener('DOMContentLoaded',()=>{
+  cargarStorage();
+  buildBloques();
+  BLOQUES_DEF.forEach(b=>{ const e=estados[b.id]; if(e) setEstado(b.id,e); renderBit(b.id); });
+  recalcular(); updateFecha(); setInterval(updateFecha,60000);
+});
+</script>
+</body>
+</html>
