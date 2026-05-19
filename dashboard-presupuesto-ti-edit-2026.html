@@ -1003,16 +1003,55 @@
     </div>
 
     <!-- Sección de carga de archivo -->
-    <div class="file-upload-section">
-        <h2 style="margin-bottom: 8px; font-size: 18px;">📊 Conecta tu archivo Excel</h2>
-        <p style="font-size: 13px; opacity: 0.9;">Carga tu archivo DataEjecutado2026.xlsx para actualizar el dashboard</p>
-        <div class="file-upload-container">
-            <label for="fileInput">
-                📁 Seleccionar archivo Excel
-            </label>
-            <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)">
-            <span class="file-status" id="fileStatus">Sin archivo cargado</span>
+    <div class="file-upload-section" id="uploadSection">
+        <h2 style="margin-bottom: 4px; font-size: 18px;">📊 Conecta tus archivos Excel</h2>
+        <p style="font-size: 13px; opacity: 0.9; margin-bottom: 18px;">Carga los archivos para visualizar la ejecución real vs. el presupuesto inicial aprobado en gerencia</p>
+
+        <div style="display: flex; align-items: flex-start; justify-content: center; gap: 32px; flex-wrap: wrap;">
+
+            <!-- Bloque 1: Ejecución -->
+            <div style="background: rgba(255,255,255,0.15); border-radius: 10px; padding: 16px 20px; min-width: 260px; text-align: center;">
+                <div style="font-size: 13px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.5px;">📁 DATOS DE EJECUCIÓN <span style="font-weight:400; opacity:0.8;">(requerido)</span></div>
+                <label for="fileInput" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: white; color: var(--erc-blue); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    Seleccionar archivo
+                </label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileUpload(event)" style="display:none;">
+                <div style="margin-top: 10px;">
+                    <span class="file-status" id="fileStatus">Sin archivo cargado</span>
+                </div>
+            </div>
+
+            <!-- Separador -->
+            <div style="display: flex; align-items: center; color: rgba(255,255,255,0.4); font-size: 28px; padding-top: 20px;">+</div>
+
+            <!-- Bloque 2: Presupuesto Inicial (múltiple) -->
+            <div style="background: rgba(255,255,255,0.12); border: 2px dashed rgba(255,255,255,0.5); border-radius: 10px; padding: 16px 20px; min-width: 300px; text-align: center;">
+                <div style="font-size: 13px; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px;">📋 PRESUPUESTO INICIAL GERENCIA <span style="font-weight:400; opacity:0.8;">(opcional)</span></div>
+                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 10px;">Selecciona los 7 archivos de empresas a la vez</div>
+                <label for="filePresupuestoInput" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.2); color: white; border: 1.5px solid rgba(255,255,255,0.7); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s;">
+                    Seleccionar archivos (múltiple)
+                </label>
+                <input type="file" id="filePresupuestoInput" accept=".xlsx,.xls" multiple onchange="handlePresupuestoUpload(event)" style="display:none;">
+                <div style="margin-top: 10px;">
+                    <span class="file-status" id="presupuestoStatus" style="background: rgba(255,255,255,0.15);">Sin archivos cargados</span>
+                </div>
+                <!-- Lista de archivos cargados -->
+                <div id="presupuestoFileList" style="margin-top: 10px; max-height: 80px; overflow-y: auto; text-align: left;"></div>
+            </div>
+
+            <!-- Separador -->
+            <div style="display: flex; align-items: center; color: rgba(255,255,255,0.4); font-size: 28px; padding-top: 20px;">→</div>
+
+            <!-- Bloque 3: Botón Ver Dashboard -->
+            <div style="display: flex; align-items: center; padding-top: 16px;">
+                <button id="verDashboardBtn" onclick="mostrarDashboard()" disabled
+                    style="padding: 16px 28px; background: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; cursor: not-allowed; font-weight: 700; font-size: 15px; transition: all 0.3s; letter-spacing: 0.5px; min-width: 180px; text-align: center; line-height: 1.4;">
+                    📊 Ver Dashboard<br><span style="font-size: 11px; font-weight: 400; opacity: 0.8;">Carga el archivo de ejecución</span>
+                </button>
+            </div>
         </div>
+
+        <p style="font-size: 11px; opacity: 0.7; margin-top: 14px;">💡 Los archivos de presupuesto inicial pueden tener columnas: <strong>Nomenclatura, Cuenta</strong> + 12 meses. La empresa se detecta automáticamente del nombre del archivo.</p>
     </div>
 
     <div class="dashboard-container">
@@ -1084,6 +1123,24 @@
             </div>
 
             <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
+
+            <!-- Carga de Presupuesto Inicial (visible después de cargar datos) -->
+            <div style="margin-top: 16px; padding: 14px; background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%); border: 2px dashed #9e9e9e; border-radius: 8px;">
+                <div style="font-size: 11px; font-weight: 700; color: #616161; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                    <span>📋</span> Presupuesto Inicial
+                </div>
+                <label for="filePresupuestoInput2" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: white; border: 1.5px solid #bdbdbd; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; color: #616161; transition: all 0.2s; text-align: center;">
+                    📂 Cargar Excel(s) Presupuesto
+                </label>
+                <input type="file" id="filePresupuestoInput2" accept=".xlsx,.xls" multiple onchange="handlePresupuestoUpload(event)" style="display: none;">
+                <div style="font-size: 10px; color: #9e9e9e; margin-top: 8px; text-align: center;" id="presupuestoStatusPanel">Sin presupuesto inicial cargado</div>
+                <div id="presupuestoCargadoBadge" style="display: none; margin-top: 8px; padding: 6px 10px; background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 20px; font-size: 10px; font-weight: 600; color: #2e7d32; text-align: center;">
+                    ✅ Presupuesto inicial activo
+                </div>
+                <button onclick="clearPresupuestoInicial()" id="clearPresupuestoBtn" style="display: none; margin-top: 8px; width: 100%; padding: 6px; background: white; border: 1px solid #ef9a9a; border-radius: 6px; color: #c62828; font-size: 11px; font-weight: 600; cursor: pointer;">
+                    ✕ Quitar presupuesto inicial
+                </button>
+            </div>
         </div>
 
         <!-- Contenido principal -->
@@ -1117,7 +1174,8 @@
                     <div class="kpi-card ejecucion">
                         <div class="kpi-label">% Ejecución</div>
                         <div class="kpi-value" id="kpi_porcentaje">0%</div>
-                        <div class="kpi-subtitle">Del presupuesto</div>
+                        <div class="kpi-subtitle" id="kpi_ejecucion_esperado" style="margin-bottom:6px;">Del presupuesto</div>
+                        <div id="kpi_ejecucion_pace" style="display:none; margin-top:4px; padding:5px 8px; border-radius:6px; font-size:11px; font-weight:600; line-height:1.4;"></div>
                     </div>
                     <div class="kpi-card proyeccion-anual">
                         <div class="kpi-label">📈 PROYECCIÓN ANUAL</div>
@@ -1189,6 +1247,20 @@
                         </div>
                     </div>
 
+                    <!-- Barras de desviación vs presupuesto inicial (visible solo si hay DATA_PRESUPUESTO) -->
+                    <div class="chart-card full-width" id="desvioChartCard" style="display:none;">
+                        <div class="chart-title" style="display:flex; align-items:center; justify-content:space-between;">
+                            <span>Desviación Mensual vs Presupuesto Inicial</span>
+                            <div style="display:flex; gap:16px; font-size:11px; font-weight:400; color:var(--erc-gray-light);">
+                                <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:#d32f2f;border-radius:2px;display:inline-block;"></span>Sobre-ejecución</span>
+                                <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:#2e7d32;border-radius:2px;display:inline-block;"></span>Bajo presupuesto</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height:200px;">
+                            <canvas id="desvioChart"></canvas>
+                        </div>
+                    </div>
+
                     <div class="chart-card">
                         <div class="chart-title">Top 5 Empresas por Gasto</div>
                         <div class="chart-container">
@@ -1256,6 +1328,194 @@ let selectedMonths = new Set(mesesHastaHoy);
 // Variable selectedMonths eliminada // Mismo valor para meses ejecutados
 let charts = {};
 let DATA = [];
+let DATA_PRESUPUESTO = []; // Presupuesto inicial aprobado en gerencia
+
+// ── Carga del archivo de Presupuesto Inicial (MÚLTIPLE) ─────────────────
+function handlePresupuestoUpload(event) {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    const presupuestoStatus = document.getElementById('presupuestoStatus');
+    presupuestoStatus.textContent = `Procesando ${files.length} archivo(s)...`;
+
+    let processed = 0;
+    let allData = [];
+    let errors = [];
+
+    // Función para extraer nombre de empresa del nombre de archivo
+    // Ejemplo: "Presupuesto_2026_Oxec_II__S_A_.xlsx" → "Oxec II, S. A."
+    function extractEmpresaFromFilename(filename) {
+        // Quitar extensión y prefijo "Presupuesto_2026_"
+        let name = filename.replace(/\.(xlsx|xls)$/i, '');
+        name = name.replace(/^Presupuesto_\d{4}_/i, '');
+        // Reemplazar __ con ", " y _ con " "
+        name = name.replace(/__/g, ', ');
+        name = name.replace(/_/g, ' ');
+        name = name.trim();
+        return name;
+    }
+
+    files.forEach(function(file) {
+        const empresaNombre = extractEmpresaFromFilename(file.name);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                if (jsonData.length === 0) throw new Error('Archivo vacío: ' + file.name);
+
+                // Inyectar columna Empresa con el nombre extraído del archivo
+                jsonData.forEach(function(row) {
+                    row.Empresa = empresaNombre;
+                    // Si tiene columna "Cuenta" pero no "Categoría", mapearla
+                    if (row.Cuenta && !row.Categoría) {
+                        row.Categoría = row.Cuenta;
+                    }
+                    // Asegurar Nomenclatura
+                    if (!row.Nomenclatura) row.Nomenclatura = '';
+                });
+
+                allData = allData.concat(jsonData);
+                console.log(`✅ ${file.name} → empresa: "${empresaNombre}", ${jsonData.length} filas`);
+            } catch (err) {
+                errors.push(file.name + ': ' + err.message);
+                console.error('Error en', file.name, err);
+            }
+
+            processed++;
+            if (processed === files.length) {
+                // Todos los archivos procesados
+                finalizarCargaPresupuesto(allData, files, errors);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+function finalizarCargaPresupuesto(allData, files, errors) {
+    if (errors.length > 0 && allData.length === 0) {
+        alert('❌ Error al cargar los archivos de presupuesto:\n' + errors.join('\n'));
+        return;
+    }
+
+    DATA_PRESUPUESTO = allData;
+
+    // Actualizar status principal
+    const presupuestoStatus = document.getElementById('presupuestoStatus');
+    presupuestoStatus.textContent = `✓ ${files.length} archivo(s) · ${DATA_PRESUPUESTO.length} registros consolidados`;
+    presupuestoStatus.style.background = 'var(--erc-green)';
+
+    // Mostrar lista de archivos cargados
+    const fileList = document.getElementById('presupuestoFileList');
+    if (fileList) {
+        fileList.innerHTML = files.map(function(f) {
+            const empresa = extractEmpresaNameFromFilename(f.name);
+            return `<div style="font-size: 10px; color: rgba(255,255,255,0.9); padding: 2px 0; display: flex; align-items: center; gap: 4px;">
+                        <span style="color: #a5d6a7;">✓</span> ${empresa}
+                    </div>`;
+        }).join('');
+    }
+
+    // Actualizar panel lateral (si ya está visible)
+    const badge = document.getElementById('presupuestoCargadoBadge');
+    const clearBtn = document.getElementById('clearPresupuestoBtn');
+    const statusPanel = document.getElementById('presupuestoStatusPanel');
+    if (badge) badge.style.display = 'block';
+    if (clearBtn) clearBtn.style.display = 'block';
+    if (statusPanel) statusPanel.textContent = `${DATA_PRESUPUESTO.length} registros de ${files.length} empresa(s)`;
+
+    if (errors.length > 0) {
+        console.warn('Algunos archivos tuvieron errores:', errors);
+    }
+
+    console.log('✅ Presupuesto inicial consolidado:', DATA_PRESUPUESTO.length, 'registros de', files.length, 'empresas');
+
+    actualizarBotonVerDashboard();
+    if (DATA.length > 0) updateCharts();
+}
+
+// Helper reutilizable para extraer nombre de empresa del filename
+function extractEmpresaNameFromFilename(filename) {
+    let name = filename.replace(/\.(xlsx|xls)$/i, '');
+    name = name.replace(/^Presupuesto_\d{4}_/i, '');
+    name = name.replace(/__/g, ', ');
+    name = name.replace(/_/g, ' ');
+    return name.trim();
+}
+
+// Habilitar/deshabilitar el botón Ver Dashboard según estado de carga
+function actualizarBotonVerDashboard() {
+    const btn = document.getElementById('verDashboardBtn');
+    if (!btn) return;
+    if (DATA.length > 0) {
+        btn.disabled = false;
+        btn.style.background = 'white';
+        btn.style.color = 'var(--erc-blue)';
+        btn.style.borderColor = 'white';
+        btn.style.cursor = 'pointer';
+        btn.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)';
+        const tienePresupuesto = DATA_PRESUPUESTO.length > 0;
+        btn.innerHTML = tienePresupuesto
+            ? '📊 Ver Dashboard<br><span style="font-size: 11px; font-weight: 400; color: #4CAF50;">✓ Con presupuesto inicial</span>'
+            : '📊 Ver Dashboard<br><span style="font-size: 11px; font-weight: 400; opacity: 0.7;">Solo ejecución (sin comparativa)</span>';
+    } else {
+        btn.disabled = true;
+        btn.style.background = 'rgba(255,255,255,0.2)';
+        btn.style.color = 'rgba(255,255,255,0.5)';
+        btn.style.borderColor = 'rgba(255,255,255,0.3)';
+        btn.style.cursor = 'not-allowed';
+        btn.style.boxShadow = 'none';
+        btn.innerHTML = '📊 Ver Dashboard<br><span style="font-size: 11px; font-weight: 400; opacity: 0.8;">Carga el archivo de ejecución</span>';
+    }
+}
+
+// Mostrar el dashboard cuando el usuario hace clic en "Ver Dashboard"
+function mostrarDashboard() {
+    if (DATA.length === 0) return;
+
+    const uploadSection = document.getElementById('uploadSection');
+    const dashboardContainer = document.querySelector('.dashboard-container');
+    const dashboardContent = document.getElementById('dashboardContent');
+    const filtersPanel = document.getElementById('filtersPanel');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const noDataState = document.getElementById('noDataState');
+
+    if (uploadSection) uploadSection.classList.add('hidden');
+    if (dashboardContainer) dashboardContainer.classList.add('expanded');
+    if (dashboardContent) dashboardContent.style.display = 'block';
+    if (filtersPanel) filtersPanel.style.display = 'block';
+    if (loadingSpinner) loadingSpinner.classList.remove('active');
+    if (noDataState) noDataState.style.display = 'none';
+
+    initializeFilters();
+    initializeMonthFilters();
+    updateDashboard();
+}
+
+function clearPresupuestoInicial() {
+    DATA_PRESUPUESTO = [];
+    const presupuestoStatus = document.getElementById('presupuestoStatus');
+    if (presupuestoStatus) { presupuestoStatus.textContent = 'Sin archivos cargados'; presupuestoStatus.style.background = 'rgba(255,255,255,0.15)'; }
+    const statusPanel = document.getElementById('presupuestoStatusPanel');
+    if (statusPanel) { statusPanel.textContent = 'Sin presupuesto inicial cargado'; statusPanel.style.color = ''; }
+    const badge = document.getElementById('presupuestoCargadoBadge');
+    const clearBtn = document.getElementById('clearPresupuestoBtn');
+    if (badge) badge.style.display = 'none';
+    if (clearBtn) clearBtn.style.display = 'none';
+    const fileList = document.getElementById('presupuestoFileList');
+    if (fileList) fileList.innerHTML = '';
+    // Limpiar los inputs de archivo
+    ['filePresupuestoInput', 'filePresupuestoInput2'].forEach(function(id) {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    actualizarBotonVerDashboard();
+    if (DATA.length > 0) updateCharts();
+}
 
 function fmt(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
@@ -1322,23 +1582,14 @@ function handleFileUpload(event) {
             // Asignar datos
             DATA = jsonData;
 
-            // Ocultar sección de carga y expandir dashboard
-            const uploadSection = document.querySelector('.file-upload-section');
-            const dashboardContainer = document.querySelector('.dashboard-container');
-            uploadSection.classList.add('hidden');
-            dashboardContainer.classList.add('expanded');
-
-            // Actualizar UI
+            // Actualizar UI del botón y status — NO mostrar dashboard todavía
             fileStatus.textContent = `✓ ${file.name} (${DATA.length} registros)`;
             fileStatus.classList.add('loaded');
             loadingSpinner.classList.remove('active');
-            dashboardContent.style.display = 'block';
-            filtersPanel.style.display = 'block';
+            noDataState.style.display = 'none';
 
-            // Inicializar filtros y dashboard
-            initializeFilters();
-            initializeMonthFilters();
-            updateDashboard();
+            // Habilitar el botón Ver Dashboard
+            actualizarBotonVerDashboard();
 
         } catch (error) {
             console.error('Error al procesar el archivo:', error);
@@ -1516,6 +1767,48 @@ function updateKPIs() {
     }
     
     document.getElementById('kpi_porcentaje').textContent = porcentajeEjecucion.toFixed(1) + '%';
+
+    // ── Indicador de ritmo de ejecución ────────────────────────────────────
+    // % esperado = (meses ejecutados / 12) * 100
+    const numMesesEjec = selectedMonths.size;
+    const paceEl       = document.getElementById('kpi_ejecucion_pace');
+    const expectedEl   = document.getElementById('kpi_ejecucion_esperado');
+
+    if (numMesesEjec > 0 && totalPresupuesto > 0) {
+        const pctEsperado  = (numMesesEjec / 12) * 100;
+        const deltaPct     = porcentajeEjecucion - pctEsperado;   // positivo = sobre, negativo = bajo
+        const montoEsperado = totalPresupuesto * (pctEsperado / 100);
+        const deltaMoneto  = totalEjecutado - montoEsperado;
+
+        expectedEl.textContent = `Esperado a ${numMesesEjec} mes${numMesesEjec > 1 ? 'es' : ''}: ${pctEsperado.toFixed(1)}%`;
+
+        if (Math.abs(deltaPct) < 0.05) {
+            // Exactamente en línea
+            paceEl.style.display = 'block';
+            paceEl.style.background = 'rgba(33,150,243,0.12)';
+            paceEl.style.color = '#1565C0';
+            paceEl.innerHTML = '✓ En línea con el ritmo esperado';
+        } else if (deltaPct > 0) {
+            // Sobre-ejecución
+            paceEl.style.display = 'block';
+            paceEl.style.background = 'rgba(211,47,47,0.10)';
+            paceEl.style.color = '#b71c1c';
+            paceEl.innerHTML =
+                `▲ +${deltaPct.toFixed(1)}% sobre lo esperado<br>` +
+                `<span style="font-weight:400;">+${fmt(deltaMoneto)} adicional</span>`;
+        } else {
+            // Sub-ejecución (ahorro)
+            paceEl.style.display = 'block';
+            paceEl.style.background = 'rgba(46,125,50,0.10)';
+            paceEl.style.color = '#1b5e20';
+            paceEl.innerHTML =
+                `▼ ${deltaPct.toFixed(1)}% bajo lo esperado<br>` +
+                `<span style="font-weight:400;">${fmt(Math.abs(deltaMoneto))} de ahorro</span>`;
+        }
+    } else {
+        if (expectedEl) expectedEl.textContent = 'Del presupuesto';
+        if (paceEl)     paceEl.style.display = 'none';
+    }
     
     // KPI 6: Total Ejecutado
     document.getElementById('kpi_total_ejecutado').textContent = fmt(totalEjecutado);
@@ -1860,42 +2153,161 @@ function updateCharts() {
     
     // Calcular línea de tendencia (regresión lineal simple)
     const tendenciaArray = calcularTendencia(monthlyData.map(m => m.total));
-    
+
+    // ── Presupuesto Inicial — filtrado correcto por empresa ──────────────────
+    let presupuestoInicialDataset = null;
+    if (DATA_PRESUPUESTO.length > 0) {
+        const empresaFiltro   = document.getElementById('empresaFilter').value;
+        const categoriaFiltro = document.getElementById('categoriaFilter').value;
+
+        let dp = DATA_PRESUPUESTO;
+
+        if (empresaFiltro !== 'Todas') {
+            // Normalizar texto para comparar sin importar puntuación, mayúsculas, espacios
+            function norm(s) {
+                return String(s || '').toLowerCase()
+                    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+                    .replace(/\s+/g, ' ').trim();
+            }
+
+            const keyEjec = norm(empresaFiltro);
+
+            // Obtener todos los nombres de empresa que existen en DATA_PRESUPUESTO
+            const empresasPpto = [...new Set(dp.map(r => r.Empresa || ''))];
+
+            // Buscar la empresa en DATA_PRESUPUESTO que mejor coincida con la seleccionada
+            // primero coincidencia exacta normalizada, luego inclusión parcial
+            let empresaMatch = empresasPpto.find(e => norm(e) === keyEjec);
+            if (!empresaMatch) {
+                // Coincidencia parcial: la clave de ejecución contiene o está contenida en la del presupuesto
+                empresaMatch = empresasPpto.find(e => {
+                    const kp = norm(e);
+                    return keyEjec.includes(kp) || kp.includes(keyEjec) ||
+                        // Coincidencia por palabras clave significativas (≥5 chars)
+                        keyEjec.split(' ').filter(w => w.length >= 5)
+                            .some(w => kp.includes(w));
+                });
+            }
+
+            if (empresaMatch) {
+                dp = dp.filter(r => r.Empresa === empresaMatch);
+            } else {
+                // Fallback: filtrar por nomenclaturas que usa esa empresa en DATA
+                let dEjec = DATA.filter(r => r.Empresa === empresaFiltro);
+                const nomsFiltradas = new Set(dEjec.map(r => String(r.Nomenclatura || '').trim()));
+                // Tomar solo las filas de DATA_PRESUPUESTO cuya nomenclatura aparece en esa empresa
+                // Para no sumar todas las empresas que comparten nomenclatura,
+                // dividimos el monto entre el número de empresas que tienen esa nomenclatura
+                dp = dp.filter(r => nomsFiltradas.has(String(r.Nomenclatura || '').trim()));
+                const totalEmpresasPpto = new Set(DATA_PRESUPUESTO.map(r => r.Empresa)).size || 1;
+                // Si todas las nomenclaturas son compartidas, proporcionar por empresa
+                if (dp.length > 0) {
+                    const nomCount = {};
+                    DATA_PRESUPUESTO.forEach(r => {
+                        const n = String(r.Nomenclatura || '').trim();
+                        nomCount[n] = (nomCount[n] || 0) + 1;
+                    });
+                    // Crear copia con montos divididos para evitar multiplicar por N empresas
+                    dp = dp.map(r => {
+                        const n = String(r.Nomenclatura || '').trim();
+                        const cnt = nomCount[n] || 1;
+                        const copia = Object.assign({}, r);
+                        MESES.forEach(m => { copia[m] = (Number(r[m]) || 0) / cnt; });
+                        return copia;
+                    });
+                }
+            }
+        }
+
+        // Filtro adicional de categoría (por nombre de cuenta/categoría)
+        if (categoriaFiltro !== 'Todas') {
+            dp = dp.filter(r =>
+                (r.Categoría || r.Cuenta || '') === categoriaFiltro
+            );
+        }
+
+        const presupuestoMensual = MESES.map(m => dp.reduce((s, r) => s + (Number(r[m]) || 0), 0));
+
+        const hayDatos = presupuestoMensual.some(v => v > 0);
+        if (hayDatos) {
+            presupuestoInicialDataset = {
+                label: 'Presupuesto Inicial Gerencia',
+                data: presupuestoMensual,
+                borderColor: 'rgba(150,150,150,0.9)',
+                backgroundColor: 'rgba(180,180,180,0.15)',
+                borderWidth: 2.5,
+                borderDash: [6, 4],
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(130,130,130,0.8)',
+                pointHoverRadius: 5,
+                fill: true,
+                tension: 0.4,
+                order: 0
+            };
+        }
+    }
+
+    // ── Determinar etiquetas: solo meses con datos (ejecutados) + presupuesto inicial ──
+    // Calcular hasta qué mes hay datos reales o presupuesto para no mostrar cola de ceros
+    const mesesConDatos = MESES.filter(m => {
+        const tieneEjec = d.some(r => (r[m] || 0) !== 0);
+        const tienePpto = presupuestoInicialDataset && (presupuestoInicialDataset.data[MESES.indexOf(m)] || 0) !== 0;
+        return tieneEjec || tienePpto;
+    });
+    // Incluir hasta el mes más tardío que tenga datos, más 1 mes de contexto si es posible
+    const ultimoMesIdx = mesesConDatos.length > 0
+        ? Math.min(MESES.indexOf(mesesConDatos[mesesConDatos.length - 1]) + 1, 11)
+        : Math.max([...selectedMonths].map(m => MESES.indexOf(m)).reduce((a, b) => Math.max(a, b), 0), 0);
+    const mesesGrafico = MESES.slice(0, ultimoMesIdx + 1);
+    const labelsGrafico = mesesGrafico.map(m => m.substring(0, 3));
+
+    // Recortar todos los datasets al rango de meses calculado
+    const recortar = arr => arr.slice(0, mesesGrafico.length);
+
+    // Armar datasets con datos recortados
+    const lineDatasets = [];
+    if (presupuestoInicialDataset) {
+        lineDatasets.push(Object.assign({}, presupuestoInicialDataset, {
+            data: recortar(presupuestoInicialDataset.data)
+        }));
+    }
+    lineDatasets.push({
+        label: 'Ejecución USD',
+        data: recortar(monthlyData.map(m => m.total)),
+        borderColor: ERC_COLORS[0],
+        backgroundColor: 'rgba(30,136,229,0.1)',
+        tension: 0.4,
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        order: 1
+    }, {
+        label: 'Promedio',
+        data: recortar(promedioArray),
+        borderColor: '#FF6B6B',
+        borderWidth: 2,
+        borderDash: [10, 5],
+        pointRadius: 0,
+        fill: false,
+        order: 2
+    }, {
+        label: 'Tendencia',
+        data: recortar(tendenciaArray),
+        borderColor: '#4ECDC4',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        pointRadius: 0,
+        fill: false,
+        order: 3
+    });
+
     if (charts.line) charts.line.destroy();
     charts.line = new Chart(document.getElementById('lineChart'), {
         type: 'line',
         data: {
-            labels: MESES.map(m => m.substring(0, 3)),
-            datasets: [{
-                label: 'Ejecución USD',
-                data: monthlyData.map(m => m.total),
-                borderColor: ERC_COLORS[0],
-                backgroundColor: 'rgba(30,136,229,0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                order: 1
-            }, {
-                label: 'Promedio',
-                data: promedioArray,
-                borderColor: '#FF6B6B',
-                borderWidth: 2,
-                borderDash: [10, 5],
-                pointRadius: 0,
-                fill: false,
-                order: 2
-            }, {
-                label: 'Tendencia',
-                data: tendenciaArray,
-                borderColor: '#4ECDC4',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                pointRadius: 0,
-                fill: false,
-                order: 3
-            }]
+            labels: labelsGrafico,
+            datasets: lineDatasets
         },
         options: {
             responsive: true,
@@ -1914,6 +2326,63 @@ function updateCharts() {
             scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() } } }
         }
     });
+
+    // ── Gráfico de desviación mensual (solo si hay presupuesto inicial) ──────
+    const desvioCard = document.getElementById('desvioChartCard');
+    if (presupuestoInicialDataset && desvioCard) {
+        desvioCard.style.display = 'block';
+
+        const pptoMeses  = recortar(presupuestoInicialDataset.data);
+        const ejecMeses  = recortar(monthlyData.map(m => m.total));
+        const desvios    = pptoMeses.map((p, i) => ejecMeses[i] - p);
+        const colores    = desvios.map(v => v > 0 ? 'rgba(211,47,47,0.82)' : 'rgba(46,125,50,0.82)');
+        const bordes     = desvios.map(v => v > 0 ? '#b71c1c' : '#1b5e20');
+
+        if (charts.desvio) charts.desvio.destroy();
+        charts.desvio = new Chart(document.getElementById('desvioChart'), {
+            type: 'bar',
+            data: {
+                labels: labelsGrafico,
+                datasets: [{
+                    label: 'Desviación vs Presupuesto',
+                    data: desvios,
+                    backgroundColor: colores,
+                    borderColor: bordes,
+                    borderWidth: 1,
+                    borderRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => {
+                                const v = ctx.raw;
+                                const pct = pptoMeses[ctx.dataIndex] 
+                                    ? ((v / pptoMeses[ctx.dataIndex]) * 100).toFixed(1) 
+                                    : 0;
+                                const signo = v >= 0 ? '+' : '';
+                                return ` ${signo}$${Math.abs(v).toLocaleString()} (${signo}${pct}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString(), font: { size: 11 } },
+                        grid: { color: 'rgba(128,128,128,0.12)' }
+                    },
+                    x: { ticks: { font: { size: 11 }, autoSkip: false } }
+                }
+            }
+        });
+    } else if (desvioCard) {
+        desvioCard.style.display = 'none';
+        if (charts.desvio) { charts.desvio.destroy(); charts.desvio = null; }
+    }
 
     // Barras empresas
     const byEmp = {};
@@ -2195,111 +2664,134 @@ function exportStaticVersion() {
 
     setTimeout(function() {
         try {
-            // CAPTURAR ESTADO ACTUAL
-            const empresaActual = document.getElementById('empresaFilter').value;
-            const categoriaActual = document.getElementById('categoriaFilter').value;
-            const mesesSel = Array.from(selectedMonths);
-            const mesesEjec = Array.from(selectedMonths);
-            
-            // Capturar valores de compromisos y traslado
-            const compromisosActual = document.getElementById('compromisosInput').value || '0';
-            const trasladoActual = document.getElementById('trasladoInput').value || '0';
-            
-            // Serializar datos de forma segura
-            const dataJSON = JSON.stringify(DATA);
-            const mesesSelJSON = JSON.stringify(mesesSel);
-            const mesesEjecJSON = JSON.stringify(mesesEjec);
-            
-            // Clonar todo el documento HTML
-            const docClone = document.cloneNode(true);
+            // ── 1. CAPTURAR ESTADO ACTUAL ─────────────────────────────────
+            const empresaActual      = document.getElementById('empresaFilter').value;
+            const categoriaActual    = document.getElementById('categoriaFilter').value;
+            const mesesSel           = Array.from(selectedMonths);
+            const compromisosActual  = document.getElementById('compromisosInput').value || '0';
+            const trasladoActual     = document.getElementById('trasladoInput').value || '0';
+
+            // Serializar datasets
+            const dataJSON             = JSON.stringify(DATA);
+            const dataPresupuestoJSON  = JSON.stringify(DATA_PRESUPUESTO);
+            const mesesSelJSON         = JSON.stringify(mesesSel);
+
+            // ── 2. CLONAR DOCUMENTO ───────────────────────────────────────
+            const docClone  = document.cloneNode(true);
             const htmlClone = docClone.documentElement;
-            
-            // Remover elementos innecesarios del clon
-            const uploadSection = htmlClone.querySelector('.file-upload-section');
+
+            // Eliminar sección de carga de archivos (no necesaria en solo lectura)
+            const uploadSection = htmlClone.querySelector('#uploadSection');
             if (uploadSection) uploadSection.remove();
-            
+
+            // Eliminar botón exportar del clon
             const exportButton = htmlClone.querySelector('#exportBtn');
-            if (exportButton) {
-                exportButton.remove();
-            }
-            
-            // Agregar badge SOLO LECTURA con fecha de exportación
+            if (exportButton) exportButton.remove();
+
+            // Eliminar inputs de archivo del panel lateral (no funcionales en solo lectura)
+            ['filePresupuestoInput2', 'clearPresupuestoBtn'].forEach(function(id) {
+                const el = htmlClone.querySelector('#' + id);
+                if (el) el.closest('label') ? el.closest('label').remove() : el.remove();
+            });
+            const labelPpto = htmlClone.querySelector('label[for="filePresupuestoInput2"]');
+            if (labelPpto) labelPpto.remove();
+
+            // ── 3. BADGE SOLO LECTURA ─────────────────────────────────────
             const header = htmlClone.querySelector('.powerbi-header');
             if (header) {
-                const fechaExportacion = new Date().toLocaleDateString('es-GT', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                const fechaExportacion = new Date().toLocaleDateString('es-GT', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
                 });
                 const badge = docClone.createElement('div');
-                badge.className = 'readonly-badge';
-                badge.innerHTML = '🔒 SOLO LECTURA<br><span style="font-size: 10px; opacity: 0.9;">Exportado: ' + fechaExportacion + '</span>';
-                badge.style.cssText = 'padding: 8px 16px; background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-align: center; line-height: 1.4;';
+                badge.innerHTML = '🔒 SOLO LECTURA<br><span style="font-size:10px;opacity:0.9;">Exportado: ' + fechaExportacion + '</span>';
+                badge.style.cssText = 'padding:8px 16px;background:linear-gradient(135deg,#FF6B6B 0%,#FF8E53 100%);color:white;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.5px;text-align:center;line-height:1.4;';
                 header.appendChild(badge);
             }
-            
-            // Cambiar título
-            const title = htmlClone.querySelector('title');
-            if (title) title.textContent = 'Dashboard Presupuesto TI 2026 - ERC Capital Corp [SOLO LECTURA]';
-            
-            // Remover el script de XLSX
-            const scripts = htmlClone.querySelectorAll('script[src*="xlsx"]');
-            scripts.forEach(function(s) { s.remove(); });
-            
-            // Crear script con datos embebidos
+
+            // Cambiar título de la pestaña
+            const titleEl = htmlClone.querySelector('title');
+            if (titleEl) titleEl.textContent = 'Dashboard Presupuesto TI 2026 - ERC Capital Corp [SOLO LECTURA]';
+
+            // Eliminar script de XLSX (no se necesita en solo lectura)
+            htmlClone.querySelectorAll('script[src*="xlsx"]').forEach(function(s) { s.remove(); });
+
+            // ── 4. SCRIPT DE PRECARGA DE DATOS ───────────────────────────
             const scriptData = docClone.createElement('script');
-            const scriptContent = 
+            scriptData.textContent =
                 'window.PRELOADED_DATA = ' + dataJSON + ';' +
-                'window.PRELOADED_EMPRESA = "' + empresaActual.replace(/"/g, '\\"') + '";' +
-                'window.PRELOADED_CATEGORIA = "' + categoriaActual.replace(/"/g, '\\"') + '";' +
+                'window.PRELOADED_DATA_PRESUPUESTO = ' + dataPresupuestoJSON + ';' +
+                'window.PRELOADED_EMPRESA = ' + JSON.stringify(empresaActual) + ';' +
+                'window.PRELOADED_CATEGORIA = ' + JSON.stringify(categoriaActual) + ';' +
                 'window.PRELOADED_MESES = ' + mesesSelJSON + ';' +
-                'window.PRELOADED_MESES_EJEC = ' + mesesEjecJSON + ';' +
-                'window.PRELOADED_COMPROMISOS = "' + compromisosActual + '";' +
-                'window.PRELOADED_TRASLADO = "' + trasladoActual + '";' +
+                'window.PRELOADED_COMPROMISOS = ' + JSON.stringify(compromisosActual) + ';' +
+                'window.PRELOADED_TRASLADO = ' + JSON.stringify(trasladoActual) + ';' +
+
                 'window.addEventListener("DOMContentLoaded", function() {' +
-                '  if (window.PRELOADED_DATA) {' +
-                '    DATA = window.PRELOADED_DATA;' +
-                '    selectedMonths = new Set(window.PRELOADED_MESES);' +
-                '    selectedMonths = new Set(window.PRELOADED_MESES_EJEC);' +
-                '    setTimeout(function() {' +
-                '      initializeFilters();' +
-                '      initializeMonthFilters();' +
-                '      document.getElementById("empresaFilter").value = window.PRELOADED_EMPRESA;' +
-                '      document.getElementById("categoriaFilter").value = window.PRELOADED_CATEGORIA;' +
-                '      document.getElementById("compromisosInput").value = window.PRELOADED_COMPROMISOS;' +
-                '      document.getElementById("trasladoInput").value = window.PRELOADED_TRASLADO;' +
-                '      updateDashboard();' +
-                '      const content = document.getElementById("dashboardContent");' +
-                '      const filters = document.getElementById("filtersPanel");' +
-                '      const container = document.querySelector(".dashboard-container");' +
-                '      if (content) content.style.display = "block";' +
-                '      if (filters) filters.style.display = "block";' +
-                '      if (container) container.classList.add("expanded");' +
-                '      const loading = document.getElementById("loadingSpinner");' +
-                '      const noData = document.getElementById("noDataState");' +
-                '      if (loading) loading.classList.remove("active");' +
-                '      if (noData) noData.style.display = "none";' +
-                '    }, 100);' +
+                '  if (!window.PRELOADED_DATA) return;' +
+
+                '  DATA = window.PRELOADED_DATA;' +
+
+                // Cargar presupuesto inicial si existe
+                '  if (window.PRELOADED_DATA_PRESUPUESTO && window.PRELOADED_DATA_PRESUPUESTO.length > 0) {' +
+                '    DATA_PRESUPUESTO = window.PRELOADED_DATA_PRESUPUESTO;' +
+                '    var badge = document.getElementById("presupuestoCargadoBadge");' +
+                '    var statusP = document.getElementById("presupuestoStatusPanel");' +
+                '    if (badge) badge.style.display = "block";' +
+                '    if (statusP) statusP.textContent = DATA_PRESUPUESTO.length + " registros embebidos";' +
                 '  }' +
+
+                // Restaurar meses seleccionados
+                '  selectedMonths = new Set(window.PRELOADED_MESES);' +
+
+                '  setTimeout(function() {' +
+                // Ocultar pantalla de carga y mostrar dashboard
+                '    var loading = document.getElementById("loadingSpinner");' +
+                '    var noData  = document.getElementById("noDataState");' +
+                '    var content = document.getElementById("dashboardContent");' +
+                '    var filters = document.getElementById("filtersPanel");' +
+                '    var container = document.querySelector(".dashboard-container");' +
+                '    if (loading)   loading.classList.remove("active");' +
+                '    if (noData)    noData.style.display = "none";' +
+                '    if (content)   content.style.display = "block";' +
+                '    if (filters)   filters.style.display = "block";' +
+                '    if (container) container.classList.add("expanded");' +
+
+                // Inicializar filtros y restaurar valores
+                '    initializeFilters();' +
+                '    initializeMonthFilters();' +
+                '    var ef = document.getElementById("empresaFilter");' +
+                '    var cf = document.getElementById("categoriaFilter");' +
+                '    var ci = document.getElementById("compromisosInput");' +
+                '    var ti = document.getElementById("trasladoInput");' +
+                '    if (ef) ef.value = window.PRELOADED_EMPRESA;' +
+                '    if (cf) cf.value = window.PRELOADED_CATEGORIA;' +
+                '    if (ci) ci.value = window.PRELOADED_COMPROMISOS;' +
+                '    if (ti) ti.value = window.PRELOADED_TRASLADO;' +
+
+                // Sincronizar checkboxes de meses con el Set restaurado
+                '    window.PRELOADED_MESES.forEach(function(mes) {' +
+                '      var chk = document.getElementById("mes_" + mes);' +
+                '      if (chk) { chk.checked = true; chk.parentElement.classList.add("active"); }' +
+                '      var chkE = document.getElementById("mesEjec_" + mes);' +
+                '      if (chkE) { chkE.checked = true; chkE.parentElement.classList.add("active"); }' +
+                '    });' +
+
+                // Renderizar todo el dashboard (KPIs, gráficas nuevas, tabla)
+                '    updateDashboard();' +
+                '  }, 150);' +
                 '});';
-            scriptData.textContent = scriptContent;
-            
-            // Agregar script al final del body
+
             const body = htmlClone.querySelector('body');
             if (body) body.appendChild(scriptData);
-            
-            // Generar HTML completo
+
+            // ── 5. GENERAR Y DESCARGAR ────────────────────────────────────
             const htmlFinal = '<!DOCTYPE html>\n' + htmlClone.outerHTML;
-            
-            // Descargar archivo
             const blob = new Blob([htmlFinal], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const fecha = new Date().toISOString().slice(0, 10);
-            a.download = 'dashboard-presupuesto-ti-view-2026.html';
+            const url  = URL.createObjectURL(blob);
+            const a    = docClone.createElement('a');
+            a.href     = url;
+            a.download = 'dashboard-presupuesto-ti-view-' + new Date().toISOString().slice(0, 10) + '.html';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2309,7 +2801,7 @@ function exportStaticVersion() {
             setTimeout(function() {
                 exportBtn.innerHTML = originalText;
                 exportBtn.disabled = false;
-            }, 2000);
+            }, 2500);
 
         } catch (error) {
             console.error('Error al exportar:', error);
