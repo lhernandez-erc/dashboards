@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Presupuesto TI 2026 - ERC Capital Corp</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -984,6 +986,33 @@
         @media (max-width: 480px) {
             .kpi-grid { grid-template-columns: 1fr; }
         }
+
+        /* ── Sankey D3 ─────────────────────────────────────────────────── */
+        #sankeyContainer { position: relative; width: 100%; }
+        #sankeyContainer svg { display: block; width: 100%; }
+        .sankey-tooltip {
+            position: fixed;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #37474F;
+            pointer-events: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            z-index: 9999;
+            display: none;
+            max-width: 260px;
+            line-height: 1.6;
+        }
+        .sankey-tooltip strong { color: #0B5EA8; font-size: 13px; }
+        .sankey-tooltip .tt-val { color: #26A69A; font-weight: 700; font-size: 13px; }
+        .sankey-tooltip .tt-pct { color: #78909C; font-size: 11px; }
+        .sk-node rect { cursor: pointer; transition: opacity 0.2s; }
+        .sk-node rect:hover { opacity: 0.85; }
+        .sk-link { cursor: pointer; transition: opacity 0.2s; }
+        .sk-link:hover path { opacity: 0.75 !important; }
+        .sk-label { font-family: 'Segoe UI', Tahoma, sans-serif; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -1245,6 +1274,23 @@
                         <div class="chart-container">
                             <canvas id="lineChart"></canvas>
                         </div>
+                    </div>
+
+                    <!-- Sankey: Flujo de Presupuesto Ejecutado -->
+                    <div class="chart-card full-width" id="sankeyChartCard" style="padding: 16px 8px 12px 8px;">
+                        <div class="chart-title" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                            <span>Distribución del Gasto Ejecutado por Empresa, Categoría y Tipo</span>
+                            <div style="display:flex; gap:20px; font-size:11px; font-weight:500; color:var(--erc-gray-light); flex-wrap:wrap; align-items:center;">
+                                <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;background:#0B5EA8;border-radius:3px;display:inline-block;"></span>Empresas</span>
+                                <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;background:#7E57C2;border-radius:3px;display:inline-block;"></span>Categorías</span>
+                                <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;background:#EF5350;border-radius:3px;display:inline-block;"></span>OPEX</span>
+                                <span style="display:flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;background:#26A69A;border-radius:3px;display:inline-block;"></span>CAPEX</span>
+                            </div>
+                        </div>
+                        <div id="sankeyNoData" style="display:none; text-align:center; padding:40px; color:var(--erc-gray-light); font-size:13px;">
+                            Sin datos suficientes para mostrar el flujo.
+                        </div>
+                        <div id="sankeyContainer" style="width:100%;"></div>
                     </div>
 
                     <!-- Barras de desviación vs presupuesto inicial (visible solo si hay DATA_PRESUPUESTO) -->
@@ -1520,10 +1566,19 @@ function clearPresupuestoInicial() {
 function fmt(v) { return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
 // Clasificación automática OPEX/CAPEX basada en nomenclatura
-function clasificarTipo(nomenclatura) {
+function clasificarTipo(nomenclatura, categoriaNombre) {
     const nom = String(nomenclatura).toUpperCase().trim();
     // CAPEX: Nomenclaturas 200.01.06.12.* (Equipos, Hardware, Infraestructura TI)
     if (nom.startsWith('200.01.06.12')) {
+        // Pero si la categoría es claramente OPEX por nombre, forzar OPEX
+        if (categoriaNombre) {
+            var catUp = String(categoriaNombre).toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+            var opexCats = ['CONTRATO','ENLACE','SERVICIO','MANTENIMIENTO','LICENCIA','SOFTWARE',
+                            'VIATICO','CIBERSEGURIDAD','TELECOMUNICACION','SOPORTE'];
+            if (opexCats.some(function(k){ return catUp.indexOf(k) >= 0; })) {
+                return 'OPEX';
+            }
+        }
         return 'CAPEX';
     }
     // OPEX: Todo lo demás (Servicios, Mantenimiento, Licencias, etc)
@@ -2524,6 +2579,324 @@ function updateCharts() {
             }
         }
     });
+    // ── Sankey: Flujo Empresa → Categoría → Tipo ──────────────────────────
+    updateSankeyChart(d);
+}
+
+// ── Función independiente de renderizado Sankey ────────────────────────────
+function updateSankeyChart(dataRows) {
+    var container = document.getElementById('sankeyContainer');
+    var noDataEl  = document.getElementById('sankeyNoData');
+    if (!container) return;
+
+    // Guard: si D3/d3-sankey no cargaron (CDN lento u offline), no romper el dashboard
+    if (typeof d3 === 'undefined' || typeof d3.sankey !== 'function') {
+        console.warn('[Sankey] D3 no disponible; se omite el render.');
+        return;
+    }
+
+    // Limpiar render previo
+    container.innerHTML = '';
+    container.style.height = '';
+    if (charts.sankey) charts.sankey = null;
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function fmtUSD(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+    function pct(v, t) { return t > 0 ? (v / t * 100).toFixed(1) + '%' : '0%'; }
+
+    // Obtener campo Categoría sin importar encoding del XLSX
+    function getCat(r) {
+        var keys = Object.keys(r);
+        var k = keys.find(function(k) {
+            return k.toLowerCase().replace(/[^a-z]/g, '').indexOf('categ') === 0;
+        });
+        return k ? String(r[k] || '') : '';
+    }
+
+    // Normalizar texto: mayúsculas sin acentos para comparar
+    function norm(s) {
+        return String(s || '').replace(/\s+/g, ' ').trim()
+            .toUpperCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    // ── Paso 1: registrar nombres canónicos (primera ocurrencia gana) ─────
+    var catNames = {}; // norm(cat) → display name
+    var empNames = {}; // norm(emp) → display name
+    dataRows.forEach(function(r) {
+        var cat = getCat(r).replace(/\s+/g, ' ').trim();
+        var emp = String(r.Empresa || '').replace(/\s+/g, ' ').trim();
+        if (cat && !catNames[norm(cat)]) catNames[norm(cat)] = cat;
+        if (emp && !empNames[norm(emp)]) empNames[norm(emp)] = emp;
+    });
+    function canonCat(raw) { return catNames[norm(raw)] || raw; }
+    function canonEmp(raw) { return empNames[norm(raw)] || raw; }
+
+    // ── Paso 2: acumular flujos usando calculateTotal (meses seleccionados) ─
+    var empCat  = {}; // "emp|||cat"  → monto ejecutado
+    var catTipo = {}; // "cat|||tipo" → monto ejecutado
+    var empTot  = {};
+    var catTot  = {};
+    var tipoTot = {};
+
+    dataRows.forEach(function(r) {
+        var emp  = canonEmp(String(r.Empresa || '').trim());
+        var cat  = canonCat(getCat(r).trim());
+        var tipo = clasificarTipo(r.Nomenclatura);
+        var val  = calculateTotal(r); // usa selectedMonths — igual que el resto del dashboard
+
+        if (!emp || !cat || val <= 0) return;
+
+        var kEC = emp  + '|||' + cat;
+        var kCT = cat  + '|||' + tipo;
+        empCat[kEC]   = (empCat[kEC]   || 0) + val;
+        catTipo[kCT]  = (catTipo[kCT]  || 0) + val;
+        empTot[emp]   = (empTot[emp]   || 0) + val;
+        catTot[cat]   = (catTot[cat]   || 0) + val;
+        tipoTot[tipo] = (tipoTot[tipo] || 0) + val;
+    });
+
+    var emps  = Object.keys(empTot).sort(function(a,b){ return empTot[b] - empTot[a]; });
+    var cats  = Object.keys(catTot).sort(function(a,b){ return catTot[b] - catTot[a]; });
+    var tipos = ['OPEX','CAPEX'].filter(function(t){ return tipoTot[t] > 0; });
+    var grand = Object.values(empTot).reduce(function(s,v){ return s+v; }, 0);
+
+    if (emps.length === 0 || grand <= 0) {
+        container.style.display = 'none';
+        noDataEl.style.display  = 'block';
+        return;
+    }
+    container.style.display = '';
+    noDataEl.style.display  = 'none';
+
+    // ── Paso 3: colores ERC ───────────────────────────────────────────────
+    var PAL_EMP  = ['#0B5EA8','#1565C0','#1976D2','#0288D1','#0097A7','#00838F','#006064','#283593'];
+    var PAL_CAT  = ['#7E57C2','#9575CD','#5C6BC0','#7986CB','#8E24AA','#6A1B9A','#4527A0','#512DA8','#4A148C'];
+    var colorOf  = {};
+    emps.forEach(function(e, i) { colorOf[e] = PAL_EMP[i % PAL_EMP.length]; });
+    cats.forEach(function(c, i) { colorOf[c] = PAL_CAT[i % PAL_CAT.length]; });
+    colorOf['OPEX']  = '#EF5350';
+    colorOf['CAPEX'] = '#26A69A';
+
+    // ── Paso 4: construir nodos y links para d3-sankey ────────────────────
+    var nodeList  = emps.concat(cats).concat(tipos);
+    var nodeIndex = {};
+    nodeList.forEach(function(n, i) { nodeIndex[n] = i; });
+
+    var sankeyNodes = nodeList.map(function(n) { return { name: n }; });
+    var sankeyLinks = [];
+
+    Object.keys(empCat).forEach(function(k) {
+        var p   = k.split('|||');
+        var emp = p[0], cat = p[1], val = empCat[k];
+        var si  = nodeIndex[emp];
+        var ti  = nodeIndex[cat];
+        if (si !== undefined && ti !== undefined && val > 0)
+            sankeyLinks.push({ source: si, target: ti, value: val });
+    });
+    Object.keys(catTipo).forEach(function(k) {
+        var p    = k.split('|||');
+        var cat  = p[0], tipo = p[1], val = catTipo[k];
+        var si   = nodeIndex[cat];
+        var ti   = nodeIndex[tipo];
+        if (si !== undefined && ti !== undefined && val > 0)
+            sankeyLinks.push({ source: si, target: ti, value: val });
+    });
+
+    // ── Paso 5: dimensiones compactas ────────────────────────────────────
+    var cardW   = container.parentElement ? container.parentElement.clientWidth : 900;
+    var W       = Math.max(cardW, 600);
+    var ML      = 155, MR = 140, MT = 22, MB = 12;
+    var H       = Math.min(520, Math.max(300, cats.length * 42 + MT + MB));
+    container.style.height = H + 'px';
+
+    // ── Paso 6: d3-sankey layout ──────────────────────────────────────────
+    var gen = d3.sankey()
+        .nodeWidth(16)
+        .nodePadding(8)
+        .extent([[ML, MT], [W - MR, H - MB]])
+        .nodeAlign(d3.sankeyLeft)
+        .nodeSort(null);
+
+    var graph;
+    try {
+        graph = gen({
+            nodes: sankeyNodes.map(function(d) { return Object.assign({}, d); }),
+            links: sankeyLinks.map(function(d) { return Object.assign({}, d); })
+        });
+    } catch(e) {
+        console.error('d3-sankey error:', e);
+        return;
+    }
+
+    // Grosor mínimo visible: 2% del link más grande, nunca menos de 3px
+    var maxW = graph.links.reduce(function(m, l) { return Math.max(m, l.width || 0); }, 1);
+    var minW = Math.max(3, maxW * 0.02);
+    graph.links.forEach(function(l) { if (l.width < minW) l.width = minW; });
+
+    // ── Paso 7: SVG ───────────────────────────────────────────────────────
+    var svg = d3.select(container).append('svg')
+        .attr('width', W).attr('height', H)
+        .style('width', '100%').style('height', H + 'px')
+        .style('font-family', "'Segoe UI', Tahoma, sans-serif");
+
+    var defs = svg.append('defs');
+
+    // Tooltip
+    var tip = d3.select('body').select('.sankey-tooltip');
+    if (tip.empty()) tip = d3.select('body').append('div').attr('class', 'sankey-tooltip');
+    function showTip(html, ev) {
+        tip.html(html).style('display', 'block');
+        moveTip(ev);
+    }
+    function moveTip(ev) {
+        var x = ev.clientX + 14, y = ev.clientY - 10;
+        if (x + 270 > window.innerWidth) x = ev.clientX - 280;
+        tip.style('left', x + 'px').style('top', y + 'px');
+    }
+    function hideTip() { tip.style('display', 'none'); }
+
+    // Encabezados de columna
+    var colMid = [
+        { label: 'EMPRESA',    x: ML + 8 },
+        { label: 'CATEGOR\u00cdA', x: W / 2 },
+        { label: 'TIPO',       x: W - MR + 8 }
+    ];
+    colMid.forEach(function(h) {
+        svg.append('text').attr('x', h.x).attr('y', 13)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 8).attr('font-weight', 700)
+            .attr('letter-spacing', 1.2).attr('fill', '#B0BEC5')
+            .text(h.label);
+    });
+
+    // Links con gradiente
+    graph.links.forEach(function(lk, i) {
+        var gid = 'sg' + i;
+        // CRITICAL: userSpaceOnUse con coordenadas absolutas.
+        // El default (objectBoundingBox) hace INVISIBLES los links
+        // perfectamente horizontales (bounding box de altura cero).
+        var g = defs.append('linearGradient').attr('id', gid)
+            .attr('gradientUnits', 'userSpaceOnUse')
+            .attr('x1', lk.source.x1)
+            .attr('y1', (lk.y0 + lk.y1) / 2 || 0)
+            .attr('x2', lk.target.x0)
+            .attr('y2', (lk.y0 + lk.y1) / 2 || 0);
+        g.append('stop').attr('offset','0%')
+            .attr('stop-color', colorOf[lk.source.name] || '#90A4AE')
+            .attr('stop-opacity', 0.6);
+        g.append('stop').attr('offset','100%')
+            .attr('stop-color', colorOf[lk.target.name] || '#90A4AE')
+            .attr('stop-opacity', 0.5);
+        lk._gid = gid;
+    });
+
+    var linkG = svg.append('g');
+    var linkSel = linkG.selectAll('g').data(graph.links).enter().append('g');
+    linkSel.append('path')
+        .attr('d', d3.sankeyLinkHorizontal())
+        .attr('stroke', function(d) { return 'url(#' + d._gid + ')'; })
+        .attr('stroke-width', function(d) { return Math.max(minW, d.width); })
+        .attr('fill', 'none')
+        .attr('opacity', function(d) { return d.width < 8 ? 0.75 : 0.52; });
+
+    linkSel
+        .on('mouseover', function(ev, d) {
+            d3.select(this).select('path').attr('opacity', 0.85);
+            showTip('<strong>' + d.source.name + ' &rarr; ' + d.target.name + '</strong><br>'
+                + '<span class="tt-val">' + fmtUSD(d.value) + '</span>'
+                + '&nbsp;<span class="tt-pct">(' + pct(d.value, grand) + ' del total)</span>', ev);
+        })
+        .on('mousemove', moveTip)
+        .on('mouseout', function(ev, d) {
+            d3.select(this).select('path').attr('opacity', d.width < 8 ? 0.75 : 0.52);
+            hideTip();
+        });
+
+    // Nodos
+    var nodeG = svg.append('g');
+    var nodeSel = nodeG.selectAll('g').data(graph.nodes).enter().append('g');
+
+    nodeSel.append('rect')
+        .attr('x', function(d) { return d.x0; })
+        .attr('y', function(d) { return d.y0; })
+        .attr('width',  function(d) { return d.x1 - d.x0; })
+        .attr('height', function(d) { return Math.max(2, d.y1 - d.y0); })
+        .attr('fill',   function(d) { return colorOf[d.name] || '#90A4AE'; })
+        .attr('rx', 3);
+
+    nodeSel
+        .on('mouseover', function(ev, d) {
+            d3.select(this).select('rect').attr('opacity', 0.75);
+            var tot = empTot[d.name] || catTot[d.name] || tipoTot[d.name] || 0;
+            var outs = graph.links.filter(function(l) { return l.source.name === d.name; })
+                .sort(function(a,b){ return b.value - a.value; }).slice(0, 7);
+            var ins  = graph.links.filter(function(l) { return l.target.name === d.name; })
+                .sort(function(a,b){ return b.value - a.value; }).slice(0, 7);
+            var detail = '';
+            var lines  = outs.length > 0 ? outs : ins;
+            var label  = outs.length > 0 ? 'Desglose:' : 'Origen:';
+            var nameOf = function(l) { return outs.length > 0 ? l.target.name : l.source.name; };
+            if (lines.length > 0) {
+                detail = '<br><span style="font-size:10px;color:#90A4AE;">' + label + '</span><br>';
+                lines.forEach(function(l) {
+                    detail += '<span style="font-size:11px;">\u2022 ' + nameOf(l) + ': '
+                        + fmtUSD(l.value) + ' <span style="color:#90A4AE;">('
+                        + pct(l.value, tot) + ')</span></span><br>';
+                });
+            }
+            showTip('<strong>' + d.name + '</strong><br>'
+                + '<span class="tt-val">' + fmtUSD(tot) + '</span>'
+                + '&nbsp;<span class="tt-pct">(' + pct(tot, grand) + ' del total)</span>'
+                + detail, ev);
+        })
+        .on('mousemove', moveTip)
+        .on('mouseout', function() {
+            d3.select(this).select('rect').attr('opacity', 1);
+            hideTip();
+        });
+
+    // Etiquetas
+    nodeSel.append('text')
+        .attr('x', function(d) {
+            if (emps.indexOf(d.name)  >= 0) return d.x0 - 7;
+            if (tipos.indexOf(d.name) >= 0) return d.x1 + 7;
+            return (d.x0 + d.x1) / 2;
+        })
+        .attr('y', function(d) { return (d.y0 + d.y1) / 2; })
+        .attr('dy', '-0.1em')
+        .attr('text-anchor', function(d) {
+            if (emps.indexOf(d.name)  >= 0) return 'end';
+            if (tipos.indexOf(d.name) >= 0) return 'start';
+            return 'middle';
+        })
+        .attr('font-size', function(d) {
+            if (cats.indexOf(d.name) >= 0) return (d.y1 - d.y0) < 16 ? 0 : 9;
+            return 11;
+        })
+        .attr('font-weight', 600)
+        .attr('fill', function(d) { return cats.indexOf(d.name) >= 0 ? 'white' : '#263238'; })
+        .text(function(d) {
+            var max = cats.indexOf(d.name) >= 0 ? 13 : 22;
+            return d.name.length > max ? d.name.substring(0, max) + '\u2026' : d.name;
+        });
+
+    // Sub-etiqueta monto (solo empresas y tipos)
+    nodeSel.filter(function(d) {
+        return emps.indexOf(d.name) >= 0 || tipos.indexOf(d.name) >= 0;
+    }).append('text')
+        .attr('x', function(d) {
+            return emps.indexOf(d.name) >= 0 ? d.x0 - 7 : d.x1 + 7;
+        })
+        .attr('y', function(d) { return (d.y0 + d.y1) / 2 + 13; })
+        .attr('text-anchor', function(d) {
+            return emps.indexOf(d.name) >= 0 ? 'end' : 'start';
+        })
+        .attr('font-size', 9).attr('font-weight', 400).attr('fill', '#78909C')
+        .text(function(d) {
+            var tot = empTot[d.name] || tipoTot[d.name] || 0;
+            return fmtUSD(tot);
+        });
 }
 
 function updateTable() {
@@ -2714,7 +3087,15 @@ function exportStaticVersion() {
             if (titleEl) titleEl.textContent = 'Dashboard Presupuesto TI 2026 - ERC Capital Corp [SOLO LECTURA]';
 
             // Eliminar script de XLSX (no se necesita en solo lectura)
+            // IMPORTANTE: los scripts de D3 y d3-sankey SÍ se conservan (el Sankey los necesita)
             htmlClone.querySelectorAll('script[src*="xlsx"]').forEach(function(s) { s.remove(); });
+
+            // Limpiar artefactos runtime del Sankey en el clon:
+            // 1. El tooltip que d3 agrega al body en tiempo de ejecución
+            htmlClone.querySelectorAll('.sankey-tooltip').forEach(function(t) { t.remove(); });
+            // 2. El SVG ya renderizado dentro del contenedor (se re-renderiza al cargar)
+            const sankeyCont = htmlClone.querySelector('#sankeyContainer');
+            if (sankeyCont) { sankeyCont.innerHTML = ''; sankeyCont.style.height = ''; }
 
             // ── 4. SCRIPT DE PRECARGA DE DATOS ───────────────────────────
             const scriptData = docClone.createElement('script');
