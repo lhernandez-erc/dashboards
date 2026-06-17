@@ -133,10 +133,17 @@
     /* ── Department Grid ── */
     .dept-grid {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      margin-top: 8px;
+    }
+    .dept-row {
+      display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 28px;
-      margin-top: 8px;
+      width: 100%;
     }
 
     /* ── Department Card ── */
@@ -168,6 +175,7 @@
     }
     .dept-card.ti::before { background: linear-gradient(90deg, var(--navy) 0%, var(--cyan) 100%); }
     .dept-card.fin::before { background: linear-gradient(90deg, #1e5f3a 0%, #00d48c 100%); }
+    .dept-card.mc::before { background: linear-gradient(90deg, #5f3a1e 0%, #e07800 100%); }
 
     .dept-icon {
       width: 64px; height: 64px;
@@ -179,6 +187,7 @@
     }
     .dept-card.ti .dept-icon { background: linear-gradient(135deg, #e8f4fb 0%, #d0eaf7 100%); }
     .dept-card.fin .dept-icon { background: linear-gradient(135deg, #e8fbf0 0%, #d0f7e5 100%); }
+    .dept-card.mc .dept-icon { background: linear-gradient(135deg, #fdf2e8 0%, #f7e4d0 100%); }
 
     .dept-card h2 {
       font-family: 'Cormorant Garamond', serif;
@@ -208,6 +217,7 @@
     }
     .dept-card.ti .dept-count { background: #e8f4fb; color: var(--navy); }
     .dept-card.fin .dept-count { background: #e8fbf0; color: #1e5f3a; }
+    .dept-card.mc .dept-count { background: #fdf2e8; color: #7a3a00; }
 
     .dept-arrow {
       position: absolute;
@@ -222,8 +232,9 @@
       from { opacity:0; transform: translateY(20px); }
       to   { opacity:1; transform: translateY(0); }
     }
-    .dept-card:nth-child(1) { animation-delay: 0.05s; }
-    .dept-card:nth-child(2) { animation-delay: 0.12s; }
+    .dept-row:nth-child(1) .dept-card:nth-child(1) { animation-delay: 0.05s; }
+    .dept-row:nth-child(1) .dept-card:nth-child(2) { animation-delay: 0.12s; }
+    .dept-row:nth-child(2) .dept-card:nth-child(1) { animation-delay: 0.19s; }
 
     /* ── Dashboard Grid ── */
     .grid {
@@ -407,6 +418,32 @@
       transform: translateY(-1px);
     }
 
+    /* Orange buttons for Mejora Continua */
+    .mc-card::before {
+      background: linear-gradient(90deg, #5f3a1e 0%, #e07800 100%);
+    }
+    .mc-card .card-icon { background: linear-gradient(135deg, #fdf2e8 0%, #f7e4d0 100%); border-color: rgba(224,120,0,0.15); }
+    .mc-card .feat::before { background: #c06000; }
+    .mc-card .card-divider { background: linear-gradient(90deg, #c06000 0%, transparent 100%); }
+    .btn-primary-mc {
+      background: #7a3a00;
+      color: var(--white);
+    }
+    .btn-primary-mc:hover {
+      background: #c06000;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(192,96,0,0.35);
+    }
+    .btn-secondary-mc {
+      background: #fdf5ee;
+      color: #7a3a00;
+      border: 1px solid #f0d5b0;
+    }
+    .btn-secondary-mc:hover {
+      background: #f7e8d0;
+      transform: translateY(-1px);
+    }
+
     /* Section title */
     .section-label {
       font-size: 0.62rem;
@@ -429,6 +466,8 @@
     .section-label.ti-label::before { background: var(--cyan2); }
     .section-label.fin-label { color: #00a06a; }
     .section-label.fin-label::before { background: #00a06a; }
+    .section-label.mc-label { color: #c06000; }
+    .section-label.mc-label::before { background: #c06000; }
 
     /* Footer */
     .footer {
@@ -442,7 +481,7 @@
     @media (max-width: 640px) {
       .page { padding: 0 16px 60px; }
       .grid { grid-template-columns: 1fr; }
-      .dept-grid { grid-template-columns: 1fr; }
+      .dept-row { flex-direction: column; align-items: center; }
       .header h1 { font-size: 1.7rem; }
       .features { grid-template-columns: 1fr; }
     }
@@ -467,22 +506,41 @@
   <div id="view-home" class="view active">
     <div class="dept-grid">
 
-      <!-- TI -->
-      <div class="dept-card ti" onclick="showView('ti')">
-        <div class="dept-icon">💻</div>
-        <h2>Departamento TI</h2>
-        <p>Seguimiento de presupuesto, ejecución, mejora continua, equipos y asistencia del área de Tecnología de la Información.</p>
-        <span class="dept-count">7 dashboards disponibles</span>
-        <span class="dept-arrow">→</span>
+      <!-- Fila 1: TI y Finanzas -->
+      <div class="dept-row">
+
+        <!-- TI -->
+        <div class="dept-card ti" onclick="showView('ti')">
+          <div class="dept-icon">💻</div>
+          <h2>Departamento TI</h2>
+          <p>Seguimiento de presupuesto, ejecución, equipos y asistencia del área de Tecnología de la Información.</p>
+          <span class="dept-count">6 dashboards disponibles</span>
+          <span class="dept-arrow">→</span>
+        </div>
+
+        <!-- Finanzas -->
+        <div class="dept-card fin" onclick="showView('fin')">
+          <div class="dept-icon">📊</div>
+          <h2>Departamento Finanzas</h2>
+          <p>Reportes financieros y presentaciones del área de Finanzas y Recursos Presupuestarios.</p>
+          <span class="dept-count">2 dashboards disponibles</span>
+          <span class="dept-arrow">→</span>
+        </div>
+
       </div>
 
-      <!-- Finanzas -->
-      <div class="dept-card fin" onclick="showView('fin')">
-        <div class="dept-icon">📊</div>
-        <h2>Departamento Finanzas</h2>
-        <p>Reportes financieros y presentaciones del área de Finanzas y Recursos Presupuestarios.</p>
-        <span class="dept-count">2 dashboards disponibles</span>
-        <span class="dept-arrow">→</span>
+      <!-- Fila 2: Mejora Continua (centrada) -->
+      <div class="dept-row">
+
+        <!-- Mejora Continua -->
+        <div class="dept-card mc" onclick="showView('mc')">
+          <div class="dept-icon">📈</div>
+          <h2>Departamento Mejora Continua</h2>
+          <p>Seguimiento de presupuesto e iniciativas del área de Mejora Continua y proyectos de optimización.</p>
+          <span class="dept-count">1 dashboard disponible</span>
+          <span class="dept-arrow">→</span>
+        </div>
+
       </div>
 
     </div>
@@ -559,39 +617,6 @@
             <span class="btn-sub">Datos actuales</span>
           </a>
           <a href="dashboard-presupuesto-ti-edit-2026.html" class="btn btn-secondary">
-            <span class="btn-icon">✏️</span>
-            <span class="btn-label">Editar</span>
-            <span class="btn-sub">Cargar Excel</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- 3. Mejora Continua 2026 -->
-      <div class="card">
-        <span class="badge badge-green">⬤ En Curso</span>
-        <div class="card-top">
-          <div class="card-icon">📈</div>
-          <div class="card-info">
-            <h2>Presupuesto Mejora Continua 2026</h2>
-            <p>Seguimiento mensual de iniciativas — Análisis de proyectos de mejora</p>
-          </div>
-        </div>
-        <div class="features">
-          <div class="feat">Seguimiento mensual</div>
-          <div class="feat">KPIs en tiempo real</div>
-          <div class="feat">OPEX vs CAPEX</div>
-          <div class="feat">Proyección anual</div>
-          <div class="feat">Filtros avanzados</div>
-          <div class="feat">Exportación de reportes</div>
-        </div>
-        <div class="card-divider"></div>
-        <div class="actions">
-          <a href="dashboard-presupuesto-mc-view-2026.html" class="btn btn-primary">
-            <span class="btn-icon">👁️</span>
-            <span class="btn-label">Ver</span>
-            <span class="btn-sub">Datos actuales</span>
-          </a>
-          <a href="dashboard-presupuesto-mc-edit-2026.html" class="btn btn-secondary">
             <span class="btn-icon">✏️</span>
             <span class="btn-label">Editar</span>
             <span class="btn-sub">Cargar Excel</span>
@@ -729,56 +754,85 @@
 
     <div class="section-label fin-label">Finanzas · Dashboards</div>
 
-    <div class="grid">
+    <div class="grid" style="justify-items: center;">
 
-      <!-- 1. Presentación FRP -->
-      <div class="card fin-card">
+      <!-- FRP: Presentación + Dashboard unificados -->
+      <div class="card fin-card" style="max-width: 520px;">
         <span class="badge badge-green">⬤ Activo</span>
         <div class="card-top">
-          <div class="card-icon">📑</div>
+          <div class="card-icon">📊</div>
           <div class="card-info">
-            <h2>Presentación FRP</h2>
-            <p>Presentación ejecutiva de los reportes financieros y presupuestarios del área</p>
+            <h2>Finanzas y Recursos Presupuestarios</h2>
+            <p>Presentación ejecutiva y panel de control de los reportes financieros y presupuestarios del área</p>
           </div>
         </div>
         <div class="features">
           <div class="feat">Vista ejecutiva</div>
-          <div class="feat">Resumen financiero</div>
+          <div class="feat">Análisis financiero</div>
           <div class="feat">Indicadores clave</div>
+          <div class="feat">KPIs de presupuesto</div>
+          <div class="feat">Filtros avanzados</div>
           <div class="feat">Exportable</div>
         </div>
         <div class="card-divider"></div>
         <div class="actions">
           <a href="presentacion-frp.html" class="btn btn-primary-fin">
             <span class="btn-icon">👁️</span>
-            <span class="btn-label">Ver</span>
-            <span class="btn-sub">Presentación</span>
+            <span class="btn-label">Presentación</span>
+            <span class="btn-sub">Vista ejecutiva</span>
+          </a>
+          <a href="dashboard-frp.html" class="btn btn-secondary-fin">
+            <span class="btn-icon">📋</span>
+            <span class="btn-label">Dashboard</span>
+            <span class="btn-sub">Panel de control</span>
           </a>
         </div>
       </div>
 
-      <!-- 2. Dashboard FRP -->
-      <div class="card fin-card">
-        <span class="badge badge-green">⬤ Activo</span>
+    </div>
+  </div>
+
+  <!-- ══ VIEW: MEJORA CONTINUA ══ -->
+  <div id="view-mc" class="view">
+    <div class="breadcrumb">
+      <span class="breadcrumb-link" onclick="showView('home')">Inicio</span>
+      <span class="breadcrumb-sep">›</span>
+      <span class="breadcrumb-current">Departamento Mejora Continua</span>
+    </div>
+
+    <div class="section-label mc-label">Mejora Continua · Dashboards</div>
+
+    <div class="grid" style="justify-items: center;">
+
+      <!-- 1. Presupuesto Mejora Continua 2026 -->
+      <div class="card mc-card" style="max-width: 420px;">
+        <span class="badge badge-green">⬤ En Curso</span>
         <div class="card-top">
-          <div class="card-icon">📊</div>
+          <div class="card-icon">📈</div>
           <div class="card-info">
-            <h2>Dashboard FRP</h2>
-            <p>Panel de control y análisis de los reportes financieros y presupuestarios</p>
+            <h2>Presupuesto Mejora Continua 2026</h2>
+            <p>Seguimiento mensual de iniciativas — Análisis de proyectos de mejora</p>
           </div>
         </div>
         <div class="features">
-          <div class="feat">Análisis financiero</div>
-          <div class="feat">KPIs de presupuesto</div>
+          <div class="feat">Seguimiento mensual</div>
+          <div class="feat">KPIs en tiempo real</div>
+          <div class="feat">OPEX vs CAPEX</div>
+          <div class="feat">Proyección anual</div>
           <div class="feat">Filtros avanzados</div>
           <div class="feat">Exportación de reportes</div>
         </div>
         <div class="card-divider"></div>
         <div class="actions">
-          <a href="dashboard-frp.html" class="btn btn-primary-fin">
-            <span class="btn-icon">📋</span>
-            <span class="btn-label">Abrir</span>
-            <span class="btn-sub">Dashboard FRP</span>
+          <a href="dashboard-presupuesto-mc-view-2026.html" class="btn btn-primary-mc">
+            <span class="btn-icon">👁️</span>
+            <span class="btn-label">Ver</span>
+            <span class="btn-sub">Datos actuales</span>
+          </a>
+          <a href="dashboard-presupuesto-mc-edit-2026.html" class="btn btn-secondary-mc">
+            <span class="btn-icon">✏️</span>
+            <span class="btn-label">Editar</span>
+            <span class="btn-sub">Cargar Excel</span>
           </a>
         </div>
       </div>
@@ -803,6 +857,8 @@
       document.getElementById('view-ti').classList.add('active');
     } else if (view === 'fin') {
       document.getElementById('view-fin').classList.add('active');
+    } else if (view === 'mc') {
+      document.getElementById('view-mc').classList.add('active');
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
