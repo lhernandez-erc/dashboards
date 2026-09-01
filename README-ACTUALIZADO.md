@@ -218,3 +218,4 @@ dashboards/
 **© 2025 ERC Capital Corp | Business Intelligence & Analytics**
 
 *Para más información sobre GitHub Pages y actualización de dashboards, consulta [INSTRUCCIONES.md](INSTRUCCIONES.md)*
+Publicado en dashboards.erc.com.gt
