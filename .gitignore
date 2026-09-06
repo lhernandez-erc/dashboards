@@ -1,0 +1,25 @@
+# dashboard-asistencia — datos nominales y de nómina reales (no versionar)
+docs/dashboard-asistencia/auditor/
+docs/dashboard-asistencia/dashboard-asistencia-ejecutivo.html
+docs/dashboard-asistencia/ARCHITECTURE.md
+docs/dashboard-asistencia/CHANGELOG.md
+docs/dashboard-asistencia/NEXT_TASKS.md
+docs/dashboard-asistencia/PROJECT_CONTEXT.md
+docs/dashboard-asistencia/PROJECT_STATE.md
+docs/dashboard-asistencia/**/*.csv
+docs/dashboard-asistencia/**/*.json
+
+# Exclusión por nombre de archivo (independiente de la ruta, por si se mueven de directorio)
+raw_data_export.json
+js_engine_results.json
+resultados_colaborador.csv
+resultados_mensual.csv
+
+# Datos sensibles reubicados por migracion documental
+docs/dashboard-asistencia/notas/
+docs/dashboard-asistencia/historial/
+docs/dashboard-asistencia/trabajo/
+
+# Perfil de navegador y reportes temporales
+.v2-chrome-profile/
+_inspect_report_utf8.txt
