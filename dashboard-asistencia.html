@@ -1424,6 +1424,7 @@ let rawData = [], processedData = [], filteredData = [];
 let filtrosInicializados = false;
 let ajustes   = {};     // { id: minutos a favor por ajuste manual }
 let notasDias = {};     // { 'empId_yyyy-mm-dd': 'motivo' }
+let ingresosPorId = Object.create(null); // Solo vacaciones; nunca sustituye primeraActividadConocida.
 let nombresUnicos = []; // lista para autocomplete
 let sortCol = 'fecha';  // columna de ordenamiento activa
 let sortDir = -1;       // -1 = desc, 1 = asc
@@ -1626,27 +1627,27 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Días de descanso autorizados por RH (embebidos) ──
-// Formato: { mm-dd: 'Descripción' } — aplican a cualquier año
+// Claves mm-dd: el descanso sigue aplicando a cualquier año. Tipo/fracción describen vacaciones 2026.
 const DIAS_DESCANSO = {
-  '01-01': 'Año Nuevo',
-  '01-02': 'Vacaciones Año Nuevo',
-  '03-30': 'Vacaciones Autorizadas Semana Santa',
-  '03-31': 'Vacaciones Autorizadas Semana Santa',
-  '04-01': 'Vacaciones Autorizadas Semana Santa',
-  '04-02': 'Asueto de Semana Santa',
-  '04-03': 'Asueto de Semana Santa',
-  '05-01': 'Día del Trabajador',
-  '06-29': 'Asueto Día del Ejército',
-  '09-14': 'Vacaciones Autorizadas Día de la Independencia',
-  '09-15': 'Asueto Día de la Independencia',
-  '10-19': 'Vacaciones Autorizadas Día de la Revolución',
-  '10-20': 'Asueto Día de la Revolución',
-  '12-24': 'Asueto de Noche Buena / Vacaciones Autorizadas',
-  '12-25': 'Asueto de Navidad',
-  '12-28': 'Vacaciones Autorizadas de Navidad',
-  '12-29': 'Vacaciones Autorizadas de Navidad',
-  '12-30': 'Vacaciones Autorizadas de Navidad',
-  '12-31': 'Asueto de Noche Vieja / Vacaciones Autorizadas'
+  '01-01': { descripcion: 'Año Nuevo', tipo: 'ASUETO', fraccion: 1.0 },
+  '01-02': { descripcion: 'Vacaciones Año Nuevo', tipo: 'PUENTE', fraccion: 1.0 },
+  '03-30': { descripcion: 'Vacaciones Autorizadas Semana Santa', tipo: 'PUENTE', fraccion: 1.0 },
+  '03-31': { descripcion: 'Vacaciones Autorizadas Semana Santa', tipo: 'PUENTE', fraccion: 1.0 },
+  '04-01': { descripcion: 'Vacaciones Autorizadas Semana Santa', tipo: 'PUENTE', fraccion: 1.0 },
+  '04-02': { descripcion: 'Asueto de Semana Santa', tipo: 'ASUETO', fraccion: 1.0 },
+  '04-03': { descripcion: 'Asueto de Semana Santa', tipo: 'ASUETO', fraccion: 1.0 },
+  '05-01': { descripcion: 'Día del Trabajador', tipo: 'ASUETO', fraccion: 1.0 },
+  '06-29': { descripcion: 'Asueto Día del Ejército', tipo: 'ASUETO', fraccion: 1.0 },
+  '09-14': { descripcion: 'Vacaciones Autorizadas Día de la Independencia', tipo: 'PUENTE', fraccion: 1.0 },
+  '09-15': { descripcion: 'Asueto Día de la Independencia', tipo: 'ASUETO', fraccion: 1.0 },
+  '10-19': { descripcion: 'Vacaciones Autorizadas Día de la Revolución', tipo: 'PUENTE', fraccion: 1.0 },
+  '10-20': { descripcion: 'Asueto Día de la Revolución', tipo: 'ASUETO', fraccion: 1.0 },
+  '12-24': { descripcion: 'Asueto de Noche Buena / Vacaciones Autorizadas', tipo: 'PUENTE', fraccion: 0.5 },
+  '12-25': { descripcion: 'Asueto de Navidad', tipo: 'ASUETO', fraccion: 1.0 },
+  '12-28': { descripcion: 'Vacaciones Autorizadas de Navidad', tipo: 'PUENTE', fraccion: 1.0 },
+  '12-29': { descripcion: 'Vacaciones Autorizadas de Navidad', tipo: 'PUENTE', fraccion: 1.0 },
+  '12-30': { descripcion: 'Vacaciones Autorizadas de Navidad', tipo: 'PUENTE', fraccion: 1.0 },
+  '12-31': { descripcion: 'Asueto de Noche Vieja / Vacaciones Autorizadas', tipo: 'PUENTE', fraccion: 0.5 }
 };
 
 function esDescansoRH(fechaStr){
@@ -1654,7 +1655,7 @@ function esDescansoRH(fechaStr){
   const m = String(fechaStr).match(/\d{4}-(\d{2})-(\d{2})/);
   if(!m) return null;
   const key = `${m[1]}-${m[2]}`;
-  return DIAS_DESCANSO[key] || null;
+  return DIAS_DESCANSO[key] ? DIAS_DESCANSO[key].descripcion : null;
 }
 
 // ── Clasificación de "Novedades del Período" (antes "Ausencias") ──
@@ -2125,6 +2126,66 @@ function cellToHHMM(v){
   return mt ? mt[1].padStart(2,'0')+':'+mt[2] : String(v);
 }
 
+// Séptima columna opcional. Validar sin cambiar el parser de fechas de asistencia.
+function normalizarFechaIngreso(valor){
+  if(valor === null || valor === undefined || String(valor).trim() === '') return null;
+  try {
+    let iso;
+    if(typeof valor === 'number' || valor instanceof Date) iso = cellToISODate(valor);
+    else {
+      const texto = String(valor).trim();
+      const m = texto.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+      iso = m ? m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0') : texto;
+    }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    const fecha = new Date(iso+'T00:00:00Z');
+    return Number.isFinite(fecha.getTime()) && fecha.toISOString().slice(0,10) === iso ? iso : null;
+  } catch(error){ return null; }
+}
+function leerIngresosAsistencia(filas, inicio){
+  const mapa = Object.create(null);
+  for(let i=inicio;i<filas.length;i++){
+    const fila = filas[i];
+    if(!fila || !fila[0] || fila[6] === null || fila[6] === undefined || String(fila[6]).trim() === '') continue;
+    const id = String(fila[0]), fecha = normalizarFechaIngreso(fila[6]);
+    const actual = mapa[id] || (mapa[id] = {fecha:null, conflicto:false, invalida:false});
+    if(!fecha){ actual.invalida = true; continue; }
+    if(actual.conflicto) continue;
+    if(actual.fecha && actual.fecha !== fecha){ actual.fecha = null; actual.conflicto = true; }
+    else actual.fecha = fecha;
+  }
+  return mapa;
+}
+// Solo métricas de vacaciones: exportar conteos, no fechas de ingreso personales.
+function construirVacacionesPorId(colaboradores){
+  const resultado = Object.create(null), solicitudes = Object.create(null);
+  Object.keys(notasDias).forEach(clave => {
+    const corte = clave.lastIndexOf('_'), id = clave.slice(0,corte), fecha = clave.slice(corte+1);
+    const motivo = String(notasDias[clave]).normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(!/^2026-\d{2}-\d{2}$/.test(fecha) || !normalizarFechaIngreso(fecha) || !/\bvacacion(?:es)?\b/i.test(motivo)) return;
+    (solicitudes[id] || (solicitudes[id] = new Set())).add(fecha);
+  });
+  colaboradores.forEach(colaborador => {
+    const ingreso = ingresosPorId[colaborador.id], fechaIngreso = ingreso && ingreso.fecha;
+    const puentes = Object.keys(DIAS_DESCANSO).filter(clave => DIAS_DESCANSO[clave].tipo === 'PUENTE' && (!fechaIngreso || '2026-'+clave > fechaIngreso));
+    const fechasPuente = new Set(puentes.map(clave => '2026-'+clave));
+    resultado[colaborador.id] = {
+      ingresoDisponible:!!fechaIngreso, ingresoConflictivo:!!(ingreso && ingreso.conflicto),
+      meses:Array.from({length:12},(_,mes) => {
+        const cierre = new Date(Date.UTC(2026,mes+1,0)).toISOString().slice(0,10);
+        let autorizaciones = 0, pendientes = 0, propias = 0;
+        puentes.forEach(clave => {
+          if('2026-'+clave <= cierre) autorizaciones += DIAS_DESCANSO[clave].fraccion;
+          else pendientes += DIAS_DESCANSO[clave].fraccion;
+        });
+        (solicitudes[colaborador.id] || []).forEach(fecha => { if(fecha <= cierre && !fechasPuente.has(fecha)) propias++; });
+        return {gozadas:autorizaciones+propias, autorizaciones, pendientes};
+      })
+    };
+  });
+  return resultado;
+}
+
 function readFile(file) {
   const r = new FileReader();
   r.onload = e => {
@@ -2136,6 +2197,15 @@ function readFile(file) {
     let hRow = -1;
     for(let i=0;i<json.length;i++) if(json[i]&&json[i][0]&&String(json[i][0]).toLowerCase().includes('id')){hRow=i;break;}
     if(hRow<0){alert('Encabezado no encontrado');return;}
+    ingresosPorId = leerIngresosAsistencia(json, hRow+1);
+    const conflictosIngreso = Object.keys(ingresosPorId).filter(id => ingresosPorId[id].conflicto);
+    const invalidosIngreso = Object.keys(ingresosPorId).filter(id => ingresosPorId[id].invalida);
+    if(conflictosIngreso.length || invalidosIngreso.length){
+      alert('Advertencia de fechas de ingreso. '+
+        (conflictosIngreso.length ? 'Fechas distintas para ID: '+conflictosIngreso.join(', ')+'. Se tratarán como ingreso no disponible. ' : '')+
+        (invalidosIngreso.length ? 'Fechas inválidas omitidas para ID: '+invalidosIngreso.join(', ')+'. ' : '')+
+        'Los registros y cálculos de asistencia se conservan.');
+    }
     rawData = [];
     for(let i=hRow+1;i<json.length;i++){
       const row=json[i]; if(!row||!row[0]) continue;
@@ -2198,6 +2268,7 @@ function resetUpload(){
   document.getElementById('fileInput').value='';
   document.getElementById('fileInputSalarios').value='';
   document.getElementById('fileInputPermisos').value='';
+  ingresosPorId=Object.create(null);
   rawData=[]; processedData=[]; filteredData=[]; filtrosInicializados=false; ajustes={}; notasDias={}; nombresUnicos=[]; salidasManuales={};
   salariosPorId={}; salariosCargados=false; archivoAsistenciaPendiente=null; archivoPermisosPendiente=null; permisosCargado=false;
   document.getElementById('btnProcesar').disabled=true;
@@ -2817,14 +2888,10 @@ function renderCalendario(data, fd, fh, esSolo) {
     const esFinde = (dow === 0 || dow === 6);
     const descRH  = esDescansoRH(iso); // null o string descripción
 
-    // Determinar tipo de descanso RH
-    let esAsueto    = false;
-    let esVacRH     = false;
-    if(descRH) {
-      // Asueto tiene prioridad
-      if(descRH.toLowerCase().includes('asueto')) esAsueto = true;
-      else esVacRH = true;
-    }
+    // El tipo explícito distingue asueto y puente sin alterar días hábiles.
+    const descansoCalendario = DIAS_DESCANSO[mmdd];
+    const esAsueto = !!descansoCalendario && descansoCalendario.tipo === 'ASUETO';
+    const esVacRH = !!descansoCalendario && descansoCalendario.tipo === 'PUENTE';
 
     let clase = '';
     let icon  = '';
@@ -4669,6 +4736,7 @@ function generarDashboardEjecutivo(){
     tendencia: { mesesLabel, mesesKey: meses, detallePorMes },
     colaboradoresCompletos: filas,
     detalleDiario, jornadaEsperadaMin,
+    vacacionesPorId: construirVacacionesPorId(filas),
     categoriasDisponibles
   };
 
@@ -5042,7 +5110,7 @@ function construirHTMLEjecutivo(datos){
   .colaborador-nombre { font-size:1.05rem; font-weight:700; color:var(--navy); }
   .colaborador-dpto { font-size:0.8rem; color:var(--text-secondary); margin-top:0; }
   .colaborador-dpto:not(:empty)::before { content:"·"; margin-right:8px; }
-  .colaborador-kpis { display:grid; grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr)); gap:var(--sp-md); margin-bottom:var(--sp-lg); }
+  .colaborador-kpis { display:grid; grid-template-columns:minmax(0,2fr) repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:var(--sp-lg); }
   .colaborador-kpis .kpi-card { padding:var(--sp-md); }
   .colaborador-kpis .kpi-value { font-size:1.4rem; }
   .colaborador-kpis .kpi-card { min-width:0; }
@@ -5052,8 +5120,9 @@ function construirHTMLEjecutivo(datos){
   .jornada-apoyo .indicador-conteo { color:var(--text-secondary); font-size:inherit; }
   .colaborador-kpis .kpi-label { white-space:normal; overflow-wrap:anywhere; }
   @media (min-width:641px) and (max-width:1200px) {
-    .colaborador-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
-    .colaborador-kpis .kpi-card:first-child { grid-column:1 / -1; }
+    .colaborador-kpis { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .colaborador-kpis .kpi-card:first-child { grid-column:span 2; }
+    .colaborador-kpis .kpi-card:nth-child(n+4) { grid-column:span 2; }
   }
   @media (max-width:640px) {
     .colaborador-kpis { grid-template-columns:1fr; }
@@ -5913,6 +5982,62 @@ function construirHTMLEjecutivo(datos){
   #tabPanelColaborador .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--sombra);margin-bottom:16px}
   #tabPanelColaborador .kpi-card{background:var(--panel);border-radius:10px;box-shadow:var(--sombra)}
   #tabPanelColaborador .kpi-card:not(.kpi-saldo):not(.kpi-respaldo){border-top-color:var(--line);border-right-color:var(--line);border-bottom-color:var(--line)}
+  #tabPanelColaborador #colaboradorKpis .kpi-vacaciones{border:2px solid var(--line)}
+  #tabPanelColaborador #colaboradorKpis .kpi-vacaciones.exceso-vacaciones{border-color:var(--danger)}
+  #colaboradorKpis .vacaciones-pie{margin-top:auto;padding-top:12px;align-self:flex-end;text-align:right;font-size:12px;color:var(--text-secondary);line-height:1.6}
+  #colaboradorKpis .vacaciones-ingreso{font-size:12px;color:var(--text-secondary);margin-top:6px}
+  #colaboradorKpis .kpi-card:not(:first-child) .kpi-value{font-size:clamp(16px,1.4vw,20px)}
+  #colaboradorKpis .vacaciones-pie{white-space:nowrap;padding-top:8px}
+  @media(min-width:641px) and (max-width:800px){#colaboradorKpis .kpi-card{padding:10px}#tabPanelColaborador #colaboradorKpis .kpi-saldo .kpi-value{font-size:14px}}
+  @media(max-width:640px){#colaboradorKpis .kpi-card:not(:first-child) .kpi-value{font-size:1.4rem}}
+  #tabPanelColaborador #colaboradorKpis .kpi-card{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(min-content,1fr) auto;height:110px;min-height:min-content;padding-block:5px;align-content:stretch;justify-content:stretch;justify-items:stretch;position:relative}
+  #colaboradorKpis .colab-cabecera{min-width:0;align-self:start}
+  #colaboradorKpis .colab-cabecera .kpi-label{margin:0;line-height:1.4}
+  #colaboradorKpis .kpi-vacaciones .kpi-label{white-space:nowrap;overflow-wrap:normal}
+  #colaboradorKpis .colab-base{min-height:0;display:flex;flex-direction:column;justify-content:flex-end;align-self:stretch}
+  #colaboradorKpis .colab-base .kpi-sub{margin-bottom:0}
+  #colaboradorKpis .colab-base .colaborador-kpi-pie{margin-top:auto}
+  #colaboradorKpis .colab-base .vacaciones-pie{margin-top:auto;padding-top:4px}
+  #colaboradorKpis .kpi-costo-total .colab-base{align-items:flex-end}
+  #colaboradorKpis .costo-desglose{flex-wrap:nowrap;white-space:nowrap;gap:3px}
+  #colaboradorKpis .kpi-value{margin:0;align-self:start}
+  #colaboradorKpis .colab-texto{transition:opacity 180ms var(--ease-out,ease-out),filter 180ms var(--ease-out,ease-out)}
+  #colaboradorKpis .colab-texto.entrando{opacity:0;filter:blur(2px)}
+  .colab-texto-saliente{position:fixed;pointer-events:none;z-index:59;transition:opacity 180ms var(--ease-out,ease-out),filter 180ms var(--ease-out,ease-out)}
+  .colab-texto-saliente.saliendo{opacity:0;filter:blur(2px)}
+  #detalleDiaPanel{display:grid;grid-template-rows:0fr;max-height:none;overflow:visible;transition:grid-template-rows 200ms var(--ease-out,ease-out)}
+  #detalleDiaPanel.open{grid-template-rows:1fr;max-height:none}
+  #detalleDiaPanel>.detalle-dia-interior{min-height:0;overflow:hidden}
+  #detalleDiaChevron{display:inline-block;transition:transform 200ms var(--ease-out,ease-out)}
+  #detalleDiaBtn[aria-expanded="true"] #detalleDiaChevron{transform:rotate(180deg)}
+
+  @media(prefers-reduced-motion:reduce){.colab-texto-saliente{display:none}#colaboradorKpis .colab-texto{opacity:1 !important;filter:none !important}}
+  @media print{.colab-texto-saliente{display:none !important}#colaboradorKpis .colab-texto{opacity:1 !important;filter:none !important}#detalleDiaPanel{grid-template-rows:1fr !important}#detalleDiaPanel>.detalle-dia-interior{overflow:visible}}
+  /* 110px es la referencia; el mínimo intrínseco permite crecer por fila si hace falta. */
+  #colaboradorKpis .colab-base{line-height:1.15}
+  #colaboradorKpis .colab-base :is(.kpi-sub,.vacaciones-ingreso,.vacaciones-pie){font-size:12px;line-height:1.15;margin-top:0;padding-top:0}
+  #colaboradorKpis .jornada-apoyo{display:flex;flex-wrap:wrap;gap:0 5px;font-size:11px !important;line-height:1.2 !important}
+  #colaboradorKpis .jornada-apoyo>span[title]{white-space:nowrap}
+  #colaboradorKpis .saldo-con-equivalencia{row-gap:0}
+  @media(min-width:1201px) and (max-width:1320px){#tabPanelColaborador #colaboradorKpis .kpi-vacaciones{padding-inline:10px}#colaboradorKpis .colab-base .vacaciones-pie{font-size:11px}}
+  #colaboradorKpis .vacaciones-ingreso{margin-top:2px}
+  #colaboradorKpis .colab-base .vacaciones-pie{padding-top:0}
+  :root{--alto-barra-colaborador:min(38px,12dvh)}
+  .barra-colaborador{position:fixed;top:var(--alto-cabecera-fija);left:0;right:0;height:var(--alto-barra-colaborador);max-height:12dvh;z-index:59;background:var(--panel);box-shadow:0 3px 7px rgba(13,27,42,.12);opacity:0;transform:translateY(-8px);visibility:hidden;pointer-events:none;transition:opacity 200ms var(--ease-out,ease-out),transform 200ms var(--ease-out,ease-out),visibility 0s 200ms}
+  .barra-colaborador.visible{opacity:1;transform:none;visibility:visible;transition-delay:0s}
+  #tabPanelColaborador #colaboradorKpis.indicadores-condensados{visibility:hidden}
+  @media print{#tabPanelColaborador #colaboradorKpis.indicadores-condensados{visibility:visible !important}}
+  .barra-colaborador-interior{max-width:1400px;height:100%;margin:auto;padding:0 24px;display:flex;align-items:center;gap:10px;overflow:hidden;white-space:nowrap;font:12px/1.3 Inter,sans-serif}
+  .barra-colaborador .barra-nombre{flex:0 1 auto;min-width:40px;overflow:hidden;text-overflow:ellipsis}
+  .barra-colaborador .barra-indicador{flex:none;display:flex;align-items:baseline;gap:5px}
+  .barra-colaborador .barra-indicador::before{content:'·';margin-right:5px;color:var(--muted)}
+  .barra-colaborador .barra-cifra{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+  #tabPanelColaborador :is([id],button,input,select,a,[tabindex]){scroll-margin-top:calc(var(--alto-cabecera-fija) + var(--alto-barra-colaborador) + 12px)}
+  body:not(:has(#tabPanelColaborador.active)) .barra-colaborador{display:none}
+  @media(max-width:1200px){.barra-colaborador .barra-secundario{display:none}.barra-colaborador-interior{gap:6px;padding-inline:16px}}
+  @media(max-width:640px){.barra-colaborador .barra-saldo,.barra-colaborador .barra-respaldo{display:none}.barra-colaborador-interior{padding-inline:12px}}
+  @media(prefers-reduced-motion:reduce){.barra-colaborador{transition:none}}
+  @media print{.barra-colaborador{display:none !important}}
   #tabPanelColaborador .kpi-costo-total{border-left-color:var(--line)}
   #tbodyDetalleDia td[data-col="dia"]{font-family:Inter,sans-serif}
   #tabPanelColaborador .card:hover,#tabPanelColaborador .kpi-card:hover{transform:none;box-shadow:var(--sombra)}
@@ -6149,9 +6274,10 @@ function construirHTMLEjecutivo(datos){
 
           <button type="button" class="acordeon-btn" id="detalleDiaBtn" aria-expanded="true" aria-controls="detalleDiaPanel" onclick="toggleDetalleDia()" title="Registros reales de este colaborador utilizados en los cálculos de arriba — incluye días de ausencia sin marcaje ni novedad, contabilizados igual que en sus KPIs. Para auditoría y trazabilidad.">
             <span>Detalle por Día <span id="detalleDiaBase" class="detalle-dia-base"></span></span>
-            <span id="detalleDiaChevron">▴</span>
+            <span id="detalleDiaChevron" aria-hidden="true">▾</span>
           </button>
           <div class="acordeon-panel open" id="detalleDiaPanel">
+            <div class="detalle-dia-interior">
             <div class="card">
               <div class="tabla-scroll" style="max-height:480px">
                 <table>
@@ -6167,6 +6293,7 @@ function construirHTMLEjecutivo(datos){
                 </table>
               </div>
 
+            </div>
             </div>
           </div>
         </div>
@@ -7965,6 +8092,7 @@ function construirHTMLEjecutivo(datos){
     // Limpia la selección/búsqueda actual y deja el cuadro listo para elegir otro colaborador de
     // inmediato — sin obligar al usuario a borrar el nombre completo a mano (Fase 8, item 7).
     function limpiarSeleccionColaborador(){
+      limpiarTransicionColaborador();ultimoColaboradorPresentado=null;
       var input = document.getElementById('buscarColaboradorEjecutivo');
       input.value = '';
       colaboradorSeleccionadoId = null;
@@ -8024,7 +8152,27 @@ function construirHTMLEjecutivo(datos){
       };
       return meses.length ? nombre(meses[0]) + (meses.length > 1 ? '–' + nombre(meses[meses.length-1]) : '') : '';
     }
+    function tarjetaVacacionesColaborador(id, mesIdx){
+      var meses = DATA.tendencia.mesesKey, clave = mesIdx === null ? meses.slice().sort().pop() : meses[mesIdx];
+      var dato = DATA.vacacionesPorId && DATA.vacacionesPorId[id];
+      if(!clave || clave.slice(0,4) !== '2026' || !dato){
+        return '<div class="kpi-card kpi-vacaciones"><div class="kpi-label">VACACIONES GOZADAS</div><div class="kpi-value">—</div><div class="kpi-sub">Referencia disponible para el año 2026</div></div>';
+      }
+      var valor = dato.meses[Number(clave.slice(5,7))-1];
+      var formato = function(n){return Number.isInteger(n) ? String(n) : n.toFixed(1);};
+      var nombreMes = new Date(clave+'-01T12:00:00').toLocaleDateString('es-GT',{month:'long'});
+      var texto = 'La cifra representa días descontados del saldo anual de vacaciones —solicitudes propias y puentes—, no ausencias injustificadas: los puentes los decide la empresa y aplican a todos por igual desde su ingreso, aunque no los soliciten; los asuetos de ley no consumen saldo por calendario. El conteo va del 1 de enero al último día del mes final seleccionado: '+formato(valor.autorizaciones)+' días corresponden a autorizaciones de la empresa y '+formato(valor.pendientes)+' días de puente quedan pendientes en el resto del año. RRHH lleva el saldo oficial; esta referencia del año calendario 2026 considera un derecho de 15 días, sin arrastres de años anteriores';
+      if(!dato.ingresoDisponible) texto += '; sin fecha de ingreso disponible se consideran todos los puentes de 2026, separados entre transcurridos y pendientes, y la referencia puede incluir autorizaciones anteriores al ingreso';
+      if(dato.ingresoConflictivo) texto += '; hay fechas de ingreso contradictorias para este ID y ninguna fue elegida';
+      texto += '.';
+      var pie = [];
+      if(valor.autorizaciones) pie.push(formato(valor.autorizaciones)+(valor.autorizaciones===1?' autorizado':' autorizados'));
+      if(valor.pendientes) pie.push(formato(valor.pendientes)+(valor.pendientes===1?' pendiente':' pendientes'));
+      return '<div class="kpi-card kpi-vacaciones'+(valor.gozadas>15?' exceso-vacaciones':'')+'"><div class="kpi-label" title="'+texto+'">VACACIONES GOZADAS</div><div class="kpi-value">'+formato(valor.gozadas)+' de 15 días</div><div class="kpi-sub">al cierre de '+nombreMes+' 2026</div>'+(!dato.ingresoDisponible?'<div class="vacaciones-ingreso">Ingreso no disponible</div>':'')+(pie.length?'<div class="vacaciones-pie">'+pie.join(' · ')+'</div>':'')+'</div>';
+    }
+
     function mostrarDetalleColaborador(id){
+      var textosPrevios = capturarTextosColaborador(id);
       colaboradorSeleccionadoId = id;
       var base = DATA.colaboradoresCompletos.filter(function(f){ return f.id === id; })[0];
       var mesIdx = mesActivo();
@@ -8081,10 +8229,10 @@ function construirHTMLEjecutivo(datos){
       // el costo sea Q0.00 — mismo principio que "Balance de horas" en el Resumen Ejecutivo.
       var costoColor = hayCasoAbiertoColab ? (registro.costo>=200?'red':'warn') : (registro.costo>=200?'red':registro.costo>=50?'warn':'ok');
       var desgloseCosto = [
-        {valor:registro.costoDeficit || 0, etiqueta:'Déficit del período'},
+        {valor:registro.costoDeficit || 0, etiqueta:'déficit'},
         {valor:registro.costoAusencia || 0, etiqueta:'ausencias'}
       ].filter(function(componente){return Number(componente.valor.toFixed(2)) !== 0;}).map(function(componente, indice){
-        var etiqueta = indice === 0 && componente.etiqueta === 'ausencias' ? 'Ausencias' : componente.etiqueta;
+        var etiqueta = indice === 0 && componente.etiqueta === 'ausencias' ? 'ausencias' : componente.etiqueta;
         return '<span class="costo-desglose-componente">' + etiqueta + '</span>';
       });
       var subtituloCosto = desgloseCosto.length ? '<div class="kpi-sub costo-desglose">' + desgloseCosto.join('<span aria-hidden="true"> + </span>') + '</div>' : '';
@@ -8094,6 +8242,7 @@ function construirHTMLEjecutivo(datos){
         '<div class="kpi-card kpi-respaldo ' + (hayCasoAbiertoColab?'red':'neutro') + '"><div class="colaborador-kpi-cabecera"><div class="kpi-label" title="Días hábiles sin ninguna fila de marcaje y sin ninguna nota de RH, tras procesar vacaciones/permisos/IGSS/Home Office/capacitaciones/comisiones. Dimensión administrativa, independiente del costo y del saldo horario. Un colaborador puede tener Costo neto Q0.00 y aun así tener días sin respaldo.">Días sin respaldo <span class="info-ico" aria-hidden="true">ⓘ</span></div></div><div class="kpi-value ' + (hayCasoAbiertoColab?'red':'ok') + '">' + diasSinRespaldoColab + ' día' + (diasSinRespaldoColab!==1?'s':'') + '</div><div class="colaborador-kpi-pie">' + subtituloAcumulado + (hayCasoAbiertoColab ? '<span class="colaborador-costo-ausencias valor-monetario" title="Costo de ausencias sin respaldo">' + separarCentavos(fmtQEj(registro.costoAusencia || 0)) + '</span>' : '') + '</div></div>' +
         '<div class="kpi-card kpi-costo-total"><div class="kpi-label" title="Costo del saldo negativo de jornada del período más ausencias sin respaldo, que se cobran íntegramente. Con saldo favorable solo puede haber costo de ausencias.">Costo neto <span class="info-ico" aria-hidden="true">ⓘ</span></div><div class="kpi-value valor-monetario' + claseValorLongitud(fmtQEj(registro.costo)) + '">' + separarCentavos(fmtQEj(registro.costo)) + '</div>' + subtituloCosto + '</div>';
 
+      document.getElementById('colaboradorKpis').insertAdjacentHTML('beforeend', tarjetaVacacionesColaborador(id, mesIdx));
       var promedios = registro.promediosMarcaje;
       document.getElementById('colaboradorPromedios').innerHTML = promedios ?
         '<div class="promedio-item"><div class="promedio-label">Entrada promedio</div><div class="promedio-valor">' + promedios.entrada + '</div></div>' +
@@ -8114,13 +8263,15 @@ function construirHTMLEjecutivo(datos){
       document.getElementById('colaboradorAlertas').innerHTML = (alertasHtml || '<div class="colaborador-alerta ok">Sin alertas en el período seleccionado.</div>') + aclaracionBalance;
 
       prepararPresentacionColaborador();
+      animarTextosColaborador(textosPrevios);
+      ultimoColaboradorPresentado = id;
       actualizarEstadoDetalleDia();
     }
 
     function actualizarEstadoDetalleDia(){
       document.getElementById('detalleDiaPanel').classList.toggle('open', detalleDiaAbierto);
       document.getElementById('detalleDiaBtn').setAttribute('aria-expanded', String(detalleDiaAbierto));
-      document.getElementById('detalleDiaChevron').textContent = detalleDiaAbierto ? '▴' : '▾';
+      document.getElementById('detalleDiaPanel').inert = !detalleDiaAbierto;
       if(detalleDiaAbierto) renderDetalleDia();
     }
 
@@ -8311,6 +8462,59 @@ function construirHTMLEjecutivo(datos){
       });
     }
 
+    var ultimoColaboradorPresentado = null, textosCambioTimer = null, textosCambioFrame = null;
+    function limpiarTransicionColaborador(){
+      clearTimeout(textosCambioTimer);cancelAnimationFrame(textosCambioFrame);
+      document.querySelectorAll('.colab-texto-saliente').forEach(function(n){n.remove();});
+      document.querySelectorAll('#colaboradorKpis .colab-texto.entrando').forEach(function(n){n.classList.remove('entrando');});
+    }
+    function capturarTextosColaborador(id){
+      limpiarTransicionColaborador();
+      if(!ultimoColaboradorPresentado || ultimoColaboradorPresentado===id || prefersReducedMotion() || matchMedia('print').matches) return [];
+      return Array.from(document.querySelectorAll('#colaboradorKpis .colab-texto')).map(function(n){
+        var r=n.getBoundingClientRect(),c=getComputedStyle(n);
+        return {texto:n.textContent,x:r.left,y:r.top,w:r.width,h:r.height,font:c.font,color:c.color,spacing:c.letterSpacing,textTransform:c.textTransform};
+      });
+    }
+    function animarTextosColaborador(anteriores){
+      if(!anteriores.length || prefersReducedMotion()) return;
+      anteriores.forEach(function(d){
+        var n=document.createElement('span');n.className='colab-texto-saliente';n.setAttribute('aria-hidden','true');n.inert=true;n.textContent=d.texto;
+        Object.assign(n.style,{left:d.x+'px',top:d.y+'px',width:d.w+'px',height:d.h+'px',font:d.font,color:d.color,letterSpacing:d.spacing,textTransform:d.textTransform});document.body.appendChild(n);
+      });
+      document.querySelectorAll('#colaboradorKpis .colab-texto').forEach(function(n){n.classList.add('entrando');});
+      void document.getElementById('colaboradorKpis').offsetWidth;
+      textosCambioFrame=requestAnimationFrame(function(){
+        document.querySelectorAll('.colab-texto-saliente').forEach(function(n){n.classList.add('saliendo');});
+        document.querySelectorAll('#colaboradorKpis .colab-texto.entrando').forEach(function(n){n.classList.remove('entrando');});
+        textosCambioTimer=setTimeout(limpiarTransicionColaborador,210);
+      });
+    }
+    window.addEventListener('beforeprint',function(){limpiarTransicionColaborador();if(colaboradorRegistroActual && document.getElementById('tabPanelColaborador').classList.contains('active'))renderDetalleDia();});
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',limpiarTransicionColaborador);
+    function ajustarRotuloVacaciones(){
+      var label=document.querySelector('#colaboradorKpis .kpi-vacaciones .kpi-label');if(!label)return;
+      var texto=label.querySelector('.colab-texto');if(!texto)return;
+      texto.textContent='VACACIONES GOZADAS';
+      if(label.scrollWidth>label.clientWidth)texto.textContent='VACACIONES';
+    }
+    window.addEventListener('resize',ajustarRotuloVacaciones);
+    function ordenarTarjetasColaborador(){
+      document.querySelectorAll('#colaboradorKpis>.kpi-card').forEach(function(card){
+        var label=card.querySelector('.kpi-label'),valor=card.querySelector('.kpi-value');
+        var cabecera=document.createElement('div'),base=document.createElement('div');cabecera.className='colab-cabecera';base.className='colab-base';
+        cabecera.appendChild(label);valor.remove();
+        Array.from(card.children).forEach(function(n){if(n.classList.contains('colaborador-kpi-cabecera'))n.remove();else base.appendChild(n);});
+        card.replaceChildren(cabecera,valor,base);
+      });
+      var root=document.getElementById('colaboradorKpis'),walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),textos=[],n;
+      while((n=walker.nextNode())){
+        if(n.textContent.trim() && !n.parentElement.closest('.kpi-value,.mono,.valor-monetario,.resumen-info,.colab-texto'))textos.push(n);
+      }
+      textos.forEach(function(n){var span=document.createElement('span');span.className='colab-texto';n.replaceWith(span);span.appendChild(n);});
+      ajustarRotuloVacaciones();
+    }
+
     function prepararPresentacionColaborador(){
       document.querySelectorAll('#colaboradorKpis .kpi-label[title]').forEach(function(label){
         var texto=label.getAttribute('title');
@@ -8323,7 +8527,48 @@ function construirHTMLEjecutivo(datos){
         label.appendChild(boton);
       });
       tipografiaCifrasResumen(document.getElementById('tabPanelColaborador'));
+      ordenarTarjetasColaborador();
+      actualizarBarraColaborador();
     }
+    function actualizarVisibilidadBarraColaborador(){
+      var barra=document.getElementById('barraColaborador');if(!barra)return;
+      var panel=document.getElementById('tabPanelColaborador'),tarjetas=document.getElementById('colaboradorKpis');
+      var visible=panel.classList.contains('active') && !!colaboradorRegistroActual && document.getElementById('colaboradorDetalle').getBoundingClientRect().height>0 && tarjetas.getBoundingClientRect().top<=document.getElementById('cabeceraFija').getBoundingClientRect().bottom;
+      // Sustituir el bloque desde el primer recorte: el detalle tiene scroll propio.
+      tarjetas.classList.toggle('indicadores-condensados',visible);
+      barra.classList.toggle('visible',visible);barra.setAttribute('aria-hidden',String(!visible));
+    }
+    function actualizarBarraColaborador(){
+      var barra=document.getElementById('barraColaborador');if(!barra)return;
+      var cards=document.querySelectorAll('#colaboradorKpis>.kpi-card');if(cards.length!==5){barra.replaceChildren();actualizarVisibilidadBarraColaborador();return;}
+      var contenido=document.createElement('div');contenido.className='barra-colaborador-interior';
+      var nombre=document.createElement('span');nombre.className='barra-nombre';nombre.textContent=document.getElementById('colaboradorNombre').textContent;contenido.appendChild(nombre);
+      function agregar(clase,origen,texto,nota){
+        var item=document.createElement('span');item.className='barra-indicador '+clase;item.style.color=getComputedStyle(origen).color;
+        var cifra=document.createElement('span');cifra.className='barra-cifra';cifra.textContent=texto;item.appendChild(cifra);
+        if(nota){var apoyo=document.createElement('span');apoyo.textContent=nota;item.appendChild(apoyo);}
+        contenido.appendChild(item);
+      }
+      var valor=cards[0].querySelector('.kpi-value'),nivel=cards[0].querySelector('.jornada-nivel');
+      agregar('barra-cumplimiento',valor,valor.textContent.trim(),nivel?nivel.textContent:'');
+      valor=cards[1].querySelector('.kpi-value');var saldo=valor.querySelector('span');
+      agregar('barra-saldo',valor,(saldo||valor).textContent.trim());
+      valor=cards[2].querySelector('.kpi-value');agregar('barra-respaldo',valor,valor.textContent.trim(),'sin respaldo');
+      valor=cards[3].querySelector('.kpi-value');agregar('barra-secundario barra-costo',valor,valor.textContent.trim());
+      valor=cards[4].querySelector('.kpi-value');agregar('barra-secundario barra-vacaciones',valor,valor.textContent.trim().split(' de ').join('/'));
+      barra.replaceChildren(contenido);actualizarVisibilidadBarraColaborador();
+    }
+    function inicializarBarraColaborador(){
+      var barra=document.createElement('div');barra.id='barraColaborador';barra.className='barra-colaborador';barra.setAttribute('aria-hidden','true');document.body.appendChild(barra);
+      window.addEventListener('scroll',actualizarVisibilidadBarraColaborador,{passive:true});
+      window.addEventListener('resize',actualizarVisibilidadBarraColaborador);
+      var observer=new ResizeObserver(actualizarVisibilidadBarraColaborador);
+      observer.observe(document.getElementById('cabeceraFija'));observer.observe(document.getElementById('colaboradorKpis'));
+      new MutationObserver(actualizarVisibilidadBarraColaborador).observe(document.getElementById('tabPanelColaborador'),{attributes:true,attributeFilter:['class']});
+      new MutationObserver(actualizarVisibilidadBarraColaborador).observe(document.getElementById('colaboradorDetalle'),{attributes:true,attributeFilter:['style']});
+      actualizarBarraColaborador();
+    }
+
     function inicializarCabeceraFija(){
       var banda=document.getElementById('cabeceraFija'),raiz=document.documentElement;
       function medir(){raiz.style.setProperty('--alto-cabecera-fija',banda.getBoundingClientRect().height+'px');posicionarFiltroChip();}
@@ -8337,11 +8582,13 @@ function construirHTMLEjecutivo(datos){
       document.addEventListener('focusin',function(e){
         if(banda.contains(e.target)||e.target.closest('.filtro-popover,.resumen-globo'))return;
         requestAnimationFrame(function(){
-          var rect=e.target.getBoundingClientRect(),limite=banda.getBoundingClientRect().bottom+12;
+          var barra=document.getElementById('barraColaborador'),extra=barra && barra.classList.contains('visible') ? barra.getBoundingClientRect().height : 0;
+          var rect=e.target.getBoundingClientRect(),limite=banda.getBoundingClientRect().bottom+extra+12;
           if(rect.top<limite && rect.height)window.scrollBy(0,rect.top-limite);
         });
       });
       compactar();medir();
+      inicializarBarraColaborador();
     }
     function numeroPorcentajeMostrado(texto){
       return parseFloat(String(texto).replace(/,/g,''));
@@ -8379,7 +8626,7 @@ function construirHTMLEjecutivo(datos){
       globo.id = 'resumenGlobo'; globo.className = 'resumen-globo';
       globo.setAttribute('role','tooltip'); globo.hidden = true;
       document.body.appendChild(globo);
-      var activo = null, fijado = false, cierre = null;
+      var activo = null, fijado = false, cierre = null, apertura = null, pendiente = null;
       function colocar(){
         if(!activo || !activo.isConnected){cerrar();return;}
         var r = activo.getBoundingClientRect();
@@ -8387,19 +8634,28 @@ function construirHTMLEjecutivo(datos){
         globo.style.top = Math.max(12,r.bottom+9+globo.offsetHeight > innerHeight ? r.top-globo.offsetHeight-9 : r.bottom+9) + 'px';
       }
       function abrir(btn){
+        clearTimeout(apertura);pendiente=null;
         clearTimeout(cierre);
         if(activo && activo!==btn)activo.removeAttribute('aria-describedby');
         activo = btn; activo.setAttribute('aria-describedby','resumenGlobo'); globo.textContent = btn.dataset.tooltipTexto || definicionesResumen[btn.dataset.definicion][1];
         globo.hidden = false; colocar();
       }
-      function cerrar(){clearTimeout(cierre);if(activo)activo.removeAttribute('aria-describedby');activo=null;fijado=false;globo.hidden=true;}
+      function cerrar(){clearTimeout(apertura);pendiente=null;clearTimeout(cierre);if(activo)activo.removeAttribute('aria-describedby');activo=null;fijado=false;globo.hidden=true;}
       function salir(){
+        clearTimeout(apertura);pendiente=null;
+        if(activo && activo.closest('#tabPanelColaborador')){if(!fijado && document.activeElement!==activo)cerrar();return;}
         clearTimeout(cierre);
         cierre=setTimeout(function(){if(!fijado && document.activeElement !== activo && !globo.matches(':hover')) cerrar();},120);
       }
       var panel=document.body;
-      panel.addEventListener('mouseover',function(e){var b=e.target.closest('.resumen-info');if(b) abrir(b);});
-      panel.addEventListener('mouseout',function(e){if(e.target.closest('.resumen-info')) salir();});
+      panel.addEventListener('mouseover',function(e){
+        var b=e.target.closest('.resumen-info');if(!b || (e.relatedTarget && b.contains(e.relatedTarget)))return;
+        if(!b.closest('#tabPanelColaborador')){abrir(b);return;}
+        clearTimeout(apertura);clearTimeout(cierre);if(activo===b)return;
+        if(activo && !fijado)cerrar();pendiente=b;
+        apertura=setTimeout(function(){if(pendiente===b && b.isConnected)abrir(b);},150);
+      });
+      panel.addEventListener('mouseout',function(e){var b=e.target.closest('.resumen-info');if(!b || (e.relatedTarget && b.contains(e.relatedTarget)))return;if(b.closest('#tabPanelColaborador')){clearTimeout(apertura);pendiente=null;clearTimeout(cierre);if(!fijado && document.activeElement!==b)cerrar();}else salir();});
       panel.addEventListener('focusin',function(e){if(e.target.matches('.resumen-info')) abrir(e.target);});
       panel.addEventListener('focusout',function(e){if(e.target.matches('.resumen-info')) {fijado=false;salir();}});
       panel.addEventListener('click',function(e){
