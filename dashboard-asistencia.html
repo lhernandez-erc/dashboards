@@ -4335,6 +4335,27 @@ function obtenerCategoriaExcluible(dpto){
   return null;
 }
 
+function resumenJornadaRegistrada(id, mesIdx, datos){
+  var fuente = datos || DATA;
+  var filas = fuente.detalleDiario.filter(function(f){
+    return f.id === id && f.estado !== 'Ausencia injustificada' &&
+      (mesIdx === null || f.fecha.substring(0,7) === fuente.tendencia.mesesKey[mesIdx]);
+  });
+  var reponer = filas.reduce(function(a,f){return a+f.reponer;},0);
+  var favor = filas.reduce(function(a,f){return a+f.favor;},0);
+  return {dias:new Set(filas.map(function(f){return f.fecha;})).size, reponer:reponer, favor:favor, saldo:favor-reponer};
+}
+// Regla ejecutiva: cobrar solo el saldo negativo del período; ausencias intactas.
+// Misma implementación para el archivo generado y sus filtros.
+function registroConCostoPeriodo(registro, mesIdx, datos){
+  var saldo = resumenJornadaRegistrada(registro.id, mesIdx, datos).saldo;
+  var costoDeficit = Math.max(0, -saldo) * (registro.costoPorMinuto || 0);
+  return Object.assign({}, registro, {
+    saldoJornada:saldo, costoDeficit:costoDeficit,
+    costo:Number((costoDeficit + (registro.costoAusencia || 0)).toFixed(2))
+  });
+}
+
 function generarDashboardEjecutivo(){
   const dataset = getResumenDataset();
   if(!dataset.length){
@@ -4349,12 +4370,9 @@ function generarDashboardEjecutivo(){
   const registrosPorId = {};
   dataset.forEach(r => { (registrosPorId[r.id] = registrosPorId[r.id] || []).push(r); });
 
-  // ── Tendencia mensual y detalle por mes (SECCIÓN 2) — se calcula ANTES que el snapshot del
-  // período completo (más abajo) porque el costo del período completo se DEFINE como la suma de
-  // los costos mensuales (ver nota de "Consistencia Global" abajo), no como un cálculo aparte. Se
-  // embebe, por cada mes, cumplimiento/deuda/costo/asistencia/puntualidad de cada colaborador (no
-  // solo el costo) para que el filtro "Período (Mes)" del Dashboard Ejecutivo pueda recalcular
-  // KPIs/rankings/semáforo/tabla de Colaborador con los valores reales de ESE mes específico. ──
+  // Tendencia mensual y detalle por mes: conservar indicadores de cada ventana.
+  // El déficit se consolida sobre el saldo de la ventana correspondiente al serializar;
+  // el período completo puede compensar saldos de meses distintos.
   const mesesSet = new Set(dataset.map(r=>normFecha(r.fecha).substring(0,7)));
   const meses = [...mesesSet].sort();
   const detallePorMes = meses.map(mes=>{
@@ -4423,10 +4441,8 @@ function generarDashboardEjecutivo(){
         deuda: +deudaNetaTotal.toFixed(2), favor: +favorNeto.toFixed(2),
         deudaDeficitBruta: +deudaDeficitBruta.toFixed(2), favorBruto: +emp.favo.toFixed(2),
         deudaAusenciaBruta: +deudaAusenciaBruta.toFixed(2), diasSinRespaldo, diasHabilesTotal,
-        // costoPotencial DE ESTE MES: misma fórmula que `costo`, pero SIN el corte D3 — coexiste
-        // con `costo`, nunca lo reemplaza. Válido tal cual para la vista de UN mes específico
-        // (mezclarConMes reutiliza este valor). Para "Todos los meses", el período NO suma estos
-        // valores mensuales — se recalcula aparte (ver más abajo). Ver CHANGELOG.md.
+        // costoPotencial conserva el cálculo auxiliar original sin corte D3.
+        // El costo ejecutivo se normaliza por saldo antes de serializar el snapshot.
         costo: +(costoDeficit + costoAusencia).toFixed(2),
         // Componentes directos, sin redondeo intermedio ni reconstrucción por resta.
         costoDeficit, costoAusencia,
@@ -4438,23 +4454,14 @@ function generarDashboardEjecutivo(){
   const multiAñoEjecutivo = esMultiAño();
   const mesesLabel = meses.map(m=>{ const [y,mm]=m.split('-'); return multiAñoEjecutivo ? `${MESES_NOMBRES[mm-1].slice(0,3)} ${y}` : MESES_NOMBRES[mm-1].slice(0,3); });
 
-  // Costo total del período completo, por colaborador = SUMA de sus costos mensuales (ya
-  // calculados arriba, cada uno con su propio corte de meta ≥100%) — NUNCA un cálculo
-  // independiente sobre el cumplimiento promedio del período completo. Esto es lo que garantiza,
-  // por construcción, que "la suma de los valores mensuales de la gráfica coincida con el valor
-  // acumulado del KPI" (principio de "Consistencia de Gráficas" — ver CHANGELOG.md): antes, el
-  // costo del período completo se recalculaba aparte con calcularCostoPendiente() sobre la
-  // deudaNeta total, verificando ≥100% contra el cumplimiento PROMEDIO del período — un
-  // colaborador con un mes excelente dentro de un período flojo podía quedar contado distinto en
-  // el KPI "Todos los meses" que en la suma de la Tendencia Mensual. Ahora ambos son la misma cifra
-  // por definición.
+  // Acumulados auxiliares de origen: conservar la suma del costo de ausencias.
+  // El costo ejecutivo definitivo se consolida por saldo antes de serializar datos;
+  // no tiene por qué coincidir con la suma de los déficits mensuales.
   const costoTotalPorId = {};
-  const costoDeficitTotalPorId = {};
   const costoAusenciaTotalPorId = {};
   detallePorMes.forEach(mesArr => {
     mesArr.forEach(e => {
       costoTotalPorId[e.id] = (costoTotalPorId[e.id] || 0) + e.costo;
-      costoDeficitTotalPorId[e.id] = (costoDeficitTotalPorId[e.id] || 0) + e.costoDeficit;
       costoAusenciaTotalPorId[e.id] = (costoAusenciaTotalPorId[e.id] || 0) + e.costoAusencia;
     });
   });
@@ -4535,7 +4542,7 @@ function generarDashboardEjecutivo(){
       id: emp.id, nombre: emp.nombre, dpto, promediosMarcaje: calcularPromediosMarcaje(dataset.filter(r => r.id === emp.id)), cumplimiento: emp.avgJornada,
       cumplimientoExacto: emp.avgJornadaExacto,
       deuda: +(deudaTotalPorId[emp.id]||0).toFixed(2), favor: +(favorTotalPorId[emp.id]||0).toFixed(2), costo, costoPotencial,
-      costoDeficit: costoDeficitTotalPorId[emp.id] || 0, costoAusencia: costoAusenciaTotalPorId[emp.id] || 0,
+      costoAusencia: costoAusenciaTotalPorId[emp.id] || 0,
       // Rediseño de KPIs (2026-09-05): desgloses ya calculados mes a mes arriba, sumados por
       // colaborador sobre el período completo embebido (siempre 8 meses, independiente del filtro
       // "Mes" del Dashboard Ejecutivo — necesario para "Reincidencia", KPI 6).
@@ -4664,6 +4671,16 @@ function generarDashboardEjecutivo(){
     detalleDiario, jornadaEsperadaMin,
     categoriasDisponibles
   };
+
+  // Consolidar una sola vez el costo del período antes de serializarlo.
+  // El detalle mensual conserva su propia ventana; las ausencias no se recalculan.
+  datos.colaboradoresCompletos = filas.map(registro => registroConCostoPeriodo(registro, null, datos));
+  datos.tendencia.detallePorMes = detallePorMes.map((registros, mesIdx) => registros.map(registro => {
+    const base = filas.find(colaborador => colaborador.id === registro.id);
+    const normalizado = registroConCostoPeriodo(Object.assign({}, registro, {costoPorMinuto: base ? base.costoPorMinuto : 0}), mesIdx, datos);
+    delete normalizado.costoPorMinuto;
+    return normalizado;
+  }));
 
   const blob = new Blob([construirHTMLEjecutivo(datos)], {type:'text/html;charset=utf-8;'});
   const a = document.createElement('a');
@@ -7997,25 +8014,8 @@ function construirHTMLEjecutivo(datos){
       return Math.min(registro.cumplimientoExacto,100)*0.4 + registro.asistencia*0.35 + registro.puntualidad*0.25;
     }
 
-    function resumenJornadaRegistrada(id, mesIdx){
-      var filas = DATA.detalleDiario.filter(function(f){
-        return f.id === id && f.estado !== 'Ausencia injustificada' &&
-          (mesIdx === null || f.fecha.substring(0,7) === DATA.tendencia.mesesKey[mesIdx]);
-      });
-      var reponer = filas.reduce(function(a,f){return a+f.reponer;},0);
-      var favor = filas.reduce(function(a,f){return a+f.favor;},0);
-      return {dias:new Set(filas.map(function(f){return f.fecha;})).size, reponer:reponer, favor:favor, saldo:favor-reponer};
-    }
-    // Regla ejecutiva: cobrar solo el saldo negativo del período; ausencias intactas.
-    // DATA conserva el snapshot de origen y el administrativo no consume este helper.
-    function registroConCostoPeriodo(registro, mesIdx){
-      var saldo = resumenJornadaRegistrada(registro.id, mesIdx).saldo;
-      var costoDeficit = Math.max(0, -saldo) * (registro.costoPorMinuto || 0);
-      return Object.assign({}, registro, {
-        saldoJornada:saldo, costoDeficit:costoDeficit,
-        costo:Number((costoDeficit + (registro.costoAusencia || 0)).toFixed(2))
-      });
-    }
+    ${resumenJornadaRegistrada.toString()}
+    ${registroConCostoPeriodo.toString()}
     function rangoAcumuladoEjecutivo(){
       var meses = DATA.tendencia.mesesKey.slice().sort();
       var nombre = function(clave){
