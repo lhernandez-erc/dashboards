@@ -997,16 +997,18 @@
             </div>
         </div>
         
-    <div class="readonly-badge" style="padding: 8px 16px; background: linear-gradient(135deg, rgb(255, 107, 107) 0%, rgb(255, 142, 83) 100%); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-align: center; line-height: 1.4;">🔒 SOLO LECTURA<br><span style="font-size: 10px; opacity: 0.9;">Exportado: 2 de octubre de 2026 a las 02:15 p. m.</span></div></div>
+    <div class="readonly-badge" style="padding: 8px 16px; background: linear-gradient(135deg, rgb(255, 107, 107) 0%, rgb(255, 142, 83) 100%); color: white; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-align: center; line-height: 1.4;">🔒 SOLO LECTURA<br><span style="font-size: 10px; opacity: 0.9;">Exportado: 13 de noviembre de 2026 a las 09:46 a. m.</span></div></div>
 
     <!-- Sección de carga de archivo -->
     
 
     <div class="dashboard-container expanded">
 	
-					<button class="filter-toggle-btn filters-visible" id="filterToggleBtn" onclick="toggleFilters()" style="transform: translateY(-50%) scale(1); opacity: 1;">◀ FILTROS ▶</button>
+					<button class="filter-toggle-btn filters-hidden" id="filterToggleBtn" onclick="toggleFilters()">
+        ▶ FILTROS ▶
+    </button>
         <!-- Panel de filtros lateral -->
-        <div class="filters-panel" id="filtersPanel" style="display: block;">
+        <div class="filters-panel hidden" id="filtersPanel" style="display: block;">
             <div class="filter-section">
                 <h3>📊 Filtros</h3>
 				
@@ -1045,13 +1047,13 @@
 
             <div class="filter-section">
                 <h3>📅 Meses para Análisis</h3>
-                <div class="month-filter-grid" id="monthFilters"><div class="month-checkbox active"><input type="checkbox" id="mes_Enero" checked=""> Ene</div><div class="month-checkbox active"><input type="checkbox" id="mes_Febrero" checked=""> Feb</div><div class="month-checkbox active"><input type="checkbox" id="mes_Marzo" checked=""> Mar</div><div class="month-checkbox active"><input type="checkbox" id="mes_Abril" checked=""> Abr</div><div class="month-checkbox active"><input type="checkbox" id="mes_Mayo" checked=""> May</div><div class="month-checkbox active"><input type="checkbox" id="mes_Junio" checked=""> Jun</div><div class="month-checkbox active"><input type="checkbox" id="mes_Julio" checked=""> Jul</div><div class="month-checkbox active"><input type="checkbox" id="mes_Agosto" checked=""> Ago</div><div class="month-checkbox active"><input type="checkbox" id="mes_Septiembre" checked=""> Sep</div><div class="month-checkbox active"><input type="checkbox" id="mes_Octubre" checked=""> Oct</div><div class="month-checkbox active"><input type="checkbox" id="mes_Noviembre"> Nov</div><div class="month-checkbox active"><input type="checkbox" id="mes_Diciembre"> Dic</div></div>
+                <div class="month-filter-grid" id="monthFilters"><div class="month-checkbox active"><input type="checkbox" id="mes_Enero" checked=""> Ene</div><div class="month-checkbox active"><input type="checkbox" id="mes_Febrero" checked=""> Feb</div><div class="month-checkbox active"><input type="checkbox" id="mes_Marzo" checked=""> Mar</div><div class="month-checkbox active"><input type="checkbox" id="mes_Abril" checked=""> Abr</div><div class="month-checkbox active"><input type="checkbox" id="mes_Mayo" checked=""> May</div><div class="month-checkbox active"><input type="checkbox" id="mes_Junio" checked=""> Jun</div><div class="month-checkbox active"><input type="checkbox" id="mes_Julio" checked=""> Jul</div><div class="month-checkbox active"><input type="checkbox" id="mes_Agosto" checked=""> Ago</div><div class="month-checkbox active"><input type="checkbox" id="mes_Septiembre" checked=""> Sep</div><div class="month-checkbox active"><input type="checkbox" id="mes_Octubre" checked=""> Oct</div><div class="month-checkbox active"><input type="checkbox" id="mes_Noviembre" checked=""> Nov</div><div class="month-checkbox"><input type="checkbox" id="mes_Diciembre"> Dic</div></div>
             </div>
 
             <div class="filter-section" style="border-left: 3px solid #9C27B0; padding-left: 12px; background: rgba(156, 39, 176, 0.05); border-radius: 4px; padding: 12px;">
                 <h3 style="font-size: 11px; color: #9C27B0;">✅ MESES EJECUTADOS (PARA % EJECUCIÓN)</h3>
                 <p style="font-size: 10px; color: var(--erc-gray-light); margin-bottom: 8px; line-height: 1.4;">Marca solo los meses cerrados contablemente</p>
-                <div class="month-filter-grid" id="monthEjecutadosFilters"><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Enero" checked=""> Ene</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Febrero" checked=""> Feb</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Marzo" checked=""> Mar</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Abril" checked=""> Abr</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Mayo" checked=""> May</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Junio" checked=""> Jun</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Julio" checked=""> Jul</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Agosto" checked=""> Ago</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Septiembre" checked=""> Sep</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Octubre" checked=""> Oct</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Noviembre"> Nov</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Diciembre"> Dic</div></div>
+                <div class="month-filter-grid" id="monthEjecutadosFilters"><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Enero" checked=""> Ene</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Febrero" checked=""> Feb</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Marzo" checked=""> Mar</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Abril" checked=""> Abr</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Mayo" checked=""> May</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Junio" checked=""> Jun</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Julio" checked=""> Jul</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Agosto" checked=""> Ago</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Septiembre" checked=""> Sep</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Octubre" checked=""> Oct</div><div class="month-checkbox active"><input type="checkbox" id="mesEjec_Noviembre" checked=""> Nov</div><div class="month-checkbox"><input type="checkbox" id="mesEjec_Diciembre"> Dic</div></div>
             </div>
 
             <button class="reset-filters-btn" onclick="resetFilters()">🔄 Resetear Filtros</button>
@@ -1082,18 +1084,18 @@
                     </div>
                     <div class="kpi-card total-ejecutado">
                         <div class="kpi-label">TOTAL EJECUTADO</div>
-                        <div class="kpi-value" id="kpi_total_ejecutado">$93,979</div>
+                        <div class="kpi-value" id="kpi_total_ejecutado">$46,742</div>
                         <div class="kpi-subtitle">Gasto acumulado</div>
                     </div>
                     <div class="kpi-card ejecucion">
                         <div class="kpi-label">% Ejecución</div>
-                        <div class="kpi-value" id="kpi_porcentaje">100.0%</div>
+                        <div class="kpi-value" id="kpi_porcentaje">49.7%</div>
                         <div class="kpi-subtitle">Del presupuesto</div>
                     </div>
                     <div class="kpi-card proyeccion-anual">
                         <div class="kpi-label">📈 PROYECCIÓN ANUAL</div>
-                        <div class="kpi-value" id="kpi_proyeccion">$93,979</div>
-                        <div class="kpi-subtitle" id="kpi_proyeccion_diff" style="color: var(--erc-gray-light); font-weight: 500;">✓ En línea con presupuesto (100.0%)</div>
+                        <div class="kpi-value" id="kpi_proyeccion">$50,991</div>
+                        <div class="kpi-subtitle" id="kpi_proyeccion_diff" style="color: rgb(56, 142, 60); font-weight: 600;">✅ Ahorro proyectado: -45.7% (54.3% del presupuesto ajustado)</div>
                     </div>
                     <div class="kpi-card deficit" id="kpi_deficit_card" style="display: none;">
                         <div class="kpi-label">⚠️ PRESUPUESTO REQUERIDO</div>
@@ -1126,23 +1128,23 @@
                     <!-- FILA 3: Métricas de Velocidad y Tendencia -->
                     <div class="kpi-card burn-rate">
                         <div class="kpi-label">🔥 TASA DE CONSUMO</div>
-                        <div class="kpi-value" id="kpi_burn_rate">$7,832</div>
-                        <div class="kpi-subtitle" id="kpi_burn_rate_sub">✓ 0% bajo plan mensual</div>
+                        <div class="kpi-value" id="kpi_burn_rate">$4,249</div>
+                        <div class="kpi-subtitle" id="kpi_burn_rate_sub">✓ 45.7% bajo plan mensual</div>
                     </div>
-                    <div class="kpi-card runway critical">
+                    <div class="kpi-card runway">
                         <div class="kpi-label">⏱️ DURACIÓN RESTANTE</div>
-                        <div class="kpi-value" id="kpi_runway">0 meses</div>
-                        <div class="kpi-subtitle" id="kpi_runway_sub">🚨 Presupuesto agotado</div>
+                        <div class="kpi-value" id="kpi_runway">11.1 meses</div>
+                        <div class="kpi-subtitle" id="kpi_runway_sub">✓ Presupuesto saludable</div>
                     </div>
                     <div class="kpi-card tendencia acelerando">
                         <div class="kpi-label">📊 TENDENCIA MENSUAL</div>
-                        <div class="kpi-value" id="kpi_tendencia">↑ +82.1%</div>
+                        <div class="kpi-value" id="kpi_tendencia">↑ +53.9%</div>
                         <div class="kpi-subtitle" id="kpi_tendencia_sub">⚠️ Gasto acelerando</div>
                     </div>
                     <div class="kpi-card categoria-principal">
                         <div class="kpi-label">Categoría Principal</div>
                         <div class="kpi-value" style="font-size: 16px;" id="kpi_categoria">EQUIPOS DE PROTECCION ...</div>
-                        <div class="kpi-subtitle" id="kpi_categoria_valor">$35,488</div>
+                        <div class="kpi-subtitle" id="kpi_categoria_valor">$24,671</div>
                     </div>
                     <div class="kpi-card empresas-activas" id="kpi_empresas_card" style="display: block;">
                         <div class="kpi-label">Empresas Activas</div>
@@ -1156,28 +1158,28 @@
                     <div class="chart-card full-width">
                         <div class="chart-title">Ejecución Mensual 2026</div>
                         <div class="chart-container">
-                            <canvas id="lineChart" style="box-sizing: border-box; display: block; height: 300px; width: 1116px;" width="1395" height="375"></canvas>
+                            <canvas id="lineChart" width="1787" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 1429px;"></canvas>
                         </div>
                     </div>
 
                     <div class="chart-card">
                         <div class="chart-title">Top 5 Empresas por Gasto</div>
                         <div class="chart-container">
-                            <canvas id="barChart" style="box-sizing: border-box; display: block; height: 300px; width: 529px;" width="661" height="375"></canvas>
+                            <canvas id="barChart" width="857" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 686px;"></canvas>
                         </div>
                     </div>
 
                     <div class="chart-card">
                         <div class="chart-title">Distribución por Categoría</div>
                         <div class="chart-container">
-                            <canvas id="pieChart" style="box-sizing: border-box; display: block; height: 300px; width: 529px;" width="661" height="375"></canvas>
+                            <canvas id="pieChart" width="857" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 686px;"></canvas>
                         </div>
                     </div>
 
                     <div class="chart-card full-width">
                         <div class="chart-title">Distribución Mensual del Presupuesto MC</div>
                         <div class="chart-container">
-                            <canvas id="stackedBarChart" style="box-sizing: border-box; display: block; height: 300px; width: 1116px;" width="1395" height="375"></canvas>
+                            <canvas id="stackedBarChart" width="1787" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 1429px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1203,26 +1205,26 @@
             <td>Oxec II, S.A.</td>
             <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
             <td>&nbsp;200.09.64.02</td>
-            <td class="currency-cell">$13,527</td>
-            <td class="currency-cell">$13,527</td>
+            <td class="currency-cell">$13,479</td>
+            <td class="currency-cell">$11,933</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar high" style="width: 88.53030640255211%">
+                        <span class="progress-text">88.5%</span>
                     </div>
                 </div>
             </td>
             <td><span class="status-badge status-medium">Medio</span></td>
         </tr><tr>
-            <td>Aguilar Arimany, Asociados C...</td>
-            <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
-            <td>&nbsp;200.09.64.02</td>
-            <td class="currency-cell">$5,752</td>
-            <td class="currency-cell">$5,752</td>
+            <td>Oxec II, S.A.</td>
+            <td>MANTENIMIENTO DE SENALIZACION INDUSTRIAL</td>
+            <td>&nbsp;200.09.64.07</td>
+            <td class="currency-cell">$3,956</td>
+            <td class="currency-cell">$3,721</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar high" style="width: 94.05965621840244%">
+                        <span class="progress-text">94.1%</span>
                     </div>
                 </div>
             </td>
@@ -1231,12 +1233,12 @@
             <td>Visión de Aguila, S.A.</td>
             <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
             <td>&nbsp;200.09.64.02</td>
-            <td class="currency-cell">$4,900</td>
-            <td class="currency-cell">$4,900</td>
+            <td class="currency-cell">$4,927</td>
+            <td class="currency-cell">$3,257</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar medium" style="width: 66.10513497057032%">
+                        <span class="progress-text">66.1%</span>
                     </div>
                 </div>
             </td>
@@ -1245,54 +1247,12 @@
             <td>Hidroelectrica Raaxhá, S.A.</td>
             <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
             <td>&nbsp;200.09.64.02</td>
-            <td class="currency-cell">$4,880</td>
-            <td class="currency-cell">$4,880</td>
+            <td class="currency-cell">$4,254</td>
+            <td class="currency-cell">$3,217</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
-            <td>Oxec, S.A.</td>
-            <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
-            <td>&nbsp;200.09.64.02</td>
-            <td class="currency-cell">$3,858</td>
-            <td class="currency-cell">$3,858</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
-            <td>Multiservicios de Energía Re...</td>
-            <td>VIATICOS MEJORA CONTINUA</td>
-            <td>200.09.14.23</td>
-            <td class="currency-cell">$3,500</td>
-            <td class="currency-cell">$3,500</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
-            <td>Oxec II, S.A.</td>
-            <td>ASESORIA EXTERNA SSO</td>
-            <td>&nbsp;200.09.64.01</td>
-            <td class="currency-cell">$3,261</td>
-            <td class="currency-cell">$3,261</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar medium" style="width: 75.62294311236484%">
+                        <span class="progress-text">75.6%</span>
                     </div>
                 </div>
             </td>
@@ -1312,57 +1272,29 @@
             </td>
             <td><span class="status-badge status-low">Bajo</span></td>
         </tr><tr>
-            <td>Oxec II, S.A.</td>
-            <td>BOTIQUINES</td>
-            <td>&nbsp;200.09.64.06</td>
-            <td class="currency-cell">$3,041</td>
-            <td class="currency-cell">$3,041</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
-            <td>Hidroelectrica Raaxhá, S.A.</td>
-            <td>ASESORIA EXTERNA SSO</td>
-            <td>&nbsp;200.09.64.01</td>
-            <td class="currency-cell">$2,721</td>
-            <td class="currency-cell">$2,721</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
             <td>Aguilar Arimany, Asociados C...</td>
-            <td>ASESORIA EXTERNA SSO</td>
-            <td>&nbsp;200.09.64.01</td>
-            <td class="currency-cell">$2,618</td>
-            <td class="currency-cell">$2,618</td>
+            <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
+            <td>&nbsp;200.09.64.02</td>
+            <td class="currency-cell">$5,529</td>
+            <td class="currency-cell">$2,970</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar medium" style="width: 53.71676614215952%">
+                        <span class="progress-text">53.7%</span>
                     </div>
                 </div>
             </td>
             <td><span class="status-badge status-low">Bajo</span></td>
         </tr><tr>
-            <td>Visión de Aguila, S.A.</td>
-            <td>ASESORIA EXTERNA SSO</td>
-            <td>&nbsp;200.09.64.01</td>
-            <td class="currency-cell">$2,475</td>
-            <td class="currency-cell">$2,475</td>
+            <td>Oxec, S.A.</td>
+            <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
+            <td>&nbsp;200.09.64.02</td>
+            <td class="currency-cell">$3,010</td>
+            <td class="currency-cell">$1,642</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar medium" style="width: 54.5514950166113%">
+                        <span class="progress-text">54.6%</span>
                     </div>
                 </div>
             </td>
@@ -1371,40 +1303,110 @@
             <td>Oxec, S.A.</td>
             <td>MANTENIMIENTO DE SENALIZACION INDUSTRIAL</td>
             <td>&nbsp;200.09.64.07</td>
-            <td class="currency-cell">$2,316</td>
-            <td class="currency-cell">$2,316</td>
+            <td class="currency-cell">$2,140</td>
+            <td class="currency-cell">$1,595</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
-                    </div>
-                </div>
-            </td>
-            <td><span class="status-badge status-low">Bajo</span></td>
-        </tr><tr>
-            <td>Oxec II, S.A.</td>
-            <td>MANTENIMIENTO DE SENALIZACION INDUSTRIAL</td>
-            <td>&nbsp;200.09.64.07</td>
-            <td class="currency-cell">$2,316</td>
-            <td class="currency-cell">$2,316</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar medium" style="width: 74.53271028037383%">
+                        <span class="progress-text">74.5%</span>
                     </div>
                 </div>
             </td>
             <td><span class="status-badge status-low">Bajo</span></td>
         </tr><tr>
             <td>Multiservicios de Energía Re...</td>
-            <td>ASESORIA EXTERNA SSO</td>
-            <td>&nbsp;200.09.64.01</td>
-            <td class="currency-cell">$2,260</td>
-            <td class="currency-cell">$2,260</td>
+            <td>VIATICOS MEJORA CONTINUA</td>
+            <td>200.09.14.23</td>
+            <td class="currency-cell">$3,380</td>
+            <td class="currency-cell">$1,581</td>
             <td>
                 <div class="progress-container">
-                    <div class="progress-bar high" style="width: 100%">
-                        <span class="progress-text">100.0%</span>
+                    <div class="progress-bar low" style="width: 46.77514792899408%">
+                        <span class="progress-text">46.8%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Oxec II, S.A.</td>
+            <td>BOTIQUINES</td>
+            <td>&nbsp;200.09.64.06</td>
+            <td class="currency-cell">$2,450</td>
+            <td class="currency-cell">$1,411</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 57.59183673469388%">
+                        <span class="progress-text">57.6%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Oxec, S.A.</td>
+            <td>BOTIQUINES</td>
+            <td>&nbsp;200.09.64.06</td>
+            <td class="currency-cell">$1,684</td>
+            <td class="currency-cell">$1,344</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 79.80997624703087%">
+                        <span class="progress-text">79.8%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Aguilar Arimany, Asociados C...</td>
+            <td>BOTIQUINES</td>
+            <td>&nbsp;200.09.64.06</td>
+            <td class="currency-cell">$1,875</td>
+            <td class="currency-cell">$1,146</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 61.12%">
+                        <span class="progress-text">61.1%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Multiservicios de Energía Re...</td>
+            <td>EQUIPOS DE PROTECCION PERSONAL SSO</td>
+            <td>&nbsp;200.09.64.02</td>
+            <td class="currency-cell">$1,376</td>
+            <td class="currency-cell">$1,087</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 78.99709302325581%">
+                        <span class="progress-text">79.0%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Hidroelectrica Raaxhá, S.A.</td>
+            <td>BOTIQUINES</td>
+            <td>&nbsp;200.09.64.06</td>
+            <td class="currency-cell">$1,850</td>
+            <td class="currency-cell">$1,011</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 54.648648648648646%">
+                        <span class="progress-text">54.6%</span>
+                    </div>
+                </div>
+            </td>
+            <td><span class="status-badge status-low">Bajo</span></td>
+        </tr><tr>
+            <td>Visión de Aguila, S.A.</td>
+            <td>BOTIQUINES</td>
+            <td>&nbsp;200.09.64.06</td>
+            <td class="currency-cell">$1,895</td>
+            <td class="currency-cell">$1,011</td>
+            <td>
+                <div class="progress-container">
+                    <div class="progress-bar medium" style="width: 53.3509234828496%">
+                        <span class="progress-text">53.4%</span>
                     </div>
                 </div>
             </td>
@@ -2458,7 +2460,7 @@ function exportStaticVersion() {
     }, 100);
 }
 	</script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;9375e62235f146c8bf4918d2710d08b2&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;9375e62235f146c8bf4918d2710d08b2&quot;,&quot;r&quot;:1,&quot;spa&quot;:2}" crossorigin="anonymous"></script>
 
 
-<script>window.PRELOADED_DATA = [{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":611,"Octubre":611,"Noviembre":611,"Diciembre":612,"TOTAL":2618},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1063,"Mayo":1876,"Junio":0,"Julio":31,"Agosto":0,"Septiembre":695,"Octubre":695,"Noviembre":695,"Diciembre":697,"TOTAL":5752},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":658,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":658},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":946,"Diciembre":0,"TOTAL":946},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":466,"Mayo":680,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":236,"Octubre":236,"Noviembre":236,"Diciembre":237,"TOTAL":2091},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":660,"Octubre":660,"Noviembre":0,"Diciembre":660,"TOTAL":1980},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":637,"Octubre":637,"Noviembre":637,"Diciembre":637,"TOTAL":2721},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1233,"Mayo":1411,"Junio":0,"Julio":573,"Agosto":0,"Septiembre":415,"Octubre":415,"Noviembre":415,"Diciembre":418,"TOTAL":4880},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":617,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":617},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":473,"Octubre":0,"Noviembre":473,"Diciembre":0,"TOTAL":946},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":466,"Mayo":545,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":539,"Noviembre":0,"Diciembre":540,"TOTAL":2090},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":660,"Octubre":660,"Noviembre":0,"Diciembre":660,"TOTAL":1980},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.09.14.23","Categoría":"VIATICOS MEJORA CONTINUA","Enero":413,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":324,"Junio":101,"Julio":0,"Agosto":428,"Septiembre":558,"Octubre":558,"Noviembre":558,"Diciembre":560,"TOTAL":3500},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":173,"Septiembre":521,"Octubre":521,"Noviembre":521,"Diciembre":524,"TOTAL":2260},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":627,"Abril":258,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":306,"Noviembre":0,"Diciembre":305,"TOTAL":1496},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":550,"Diciembre":0,"TOTAL":550},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":103,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":103},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":246,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":384,"Noviembre":0,"Diciembre":116,"TOTAL":746},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":240,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":240},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":622,"Septiembre":0,"Octubre":164,"Noviembre":0,"Diciembre":164,"TOTAL":950},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":361,"Octubre":361,"Noviembre":361,"Diciembre":363,"TOTAL":1446},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":1467,"Abril":0,"Mayo":175,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":1108,"Noviembre":0,"Diciembre":1108,"TOTAL":3858},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":1100,"Noviembre":0,"Diciembre":0,"TOTAL":1100},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":1344,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":358,"Octubre":0,"Noviembre":359,"Diciembre":0,"TOTAL":2061},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":1158,"Octubre":0,"Noviembre":1158,"Diciembre":0,"TOTAL":2316},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":641,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":611,"Octubre":611,"Noviembre":611,"Diciembre":614,"TOTAL":3261},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":3112,"Abril":0,"Mayo":1944,"Junio":0,"Julio":731,"Agosto":0,"Septiembre":1935,"Octubre":1935,"Noviembre":1935,"Diciembre":1935,"TOTAL":13527},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":3113,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":3113},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":1100,"Noviembre":0,"Diciembre":0,"TOTAL":1100},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":1411,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":543,"Octubre":0,"Noviembre":544,"Diciembre":543,"TOTAL":3041},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":1158,"Octubre":0,"Noviembre":0,"Diciembre":1158,"TOTAL":2316},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":210,"Diciembre":0,"TOTAL":210},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":565,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":127,"Octubre":127,"Noviembre":127,"Diciembre":129,"TOTAL":1075},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":1045,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":1045},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":1240,"Diciembre":0,"TOTAL":1240},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":780,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":390,"Noviembre":0,"Diciembre":390,"TOTAL":1560},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":900,"Octubre":900,"Noviembre":0,"Diciembre":0,"TOTAL":1800},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":575,"Octubre":575,"Noviembre":575,"Diciembre":577,"TOTAL":2475},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":951,"Mayo":1872,"Junio":0,"Julio":434,"Agosto":0,"Septiembre":547,"Octubre":548,"Noviembre":0,"Diciembre":548,"TOTAL":4900},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":395,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":395},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":946,"Diciembre":0,"TOTAL":946},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":397,"Mayo":614,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":269,"Octubre":269,"Noviembre":269,"Diciembre":272,"TOTAL":2090},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":660,"Octubre":660,"Noviembre":660,"Diciembre":0,"TOTAL":1980},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0}];window.PRELOADED_EMPRESA = "Todas";window.PRELOADED_CATEGORIA = "Todas";window.PRELOADED_MESES = ["Diciembre","Noviembre","Septiembre","Octubre","Agosto","Julio","Mayo","Junio","Abril","Marzo","Enero","Febrero"];window.PRELOADED_MESES_EJEC = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];window.PRELOADED_COMPROMISOS = "0";window.PRELOADED_TRASLADO = "0";window.addEventListener("DOMContentLoaded", function() {  if (window.PRELOADED_DATA) {    DATA = window.PRELOADED_DATA;    selectedMonths = new Set(window.PRELOADED_MESES);    mesesEjecutados = new Set(window.PRELOADED_MESES_EJEC);    setTimeout(function() {      initializeFilters();      initializeMonthFilters();      document.getElementById("empresaFilter").value = window.PRELOADED_EMPRESA;      document.getElementById("categoriaFilter").value = window.PRELOADED_CATEGORIA;      document.getElementById("compromisosInput").value = window.PRELOADED_COMPROMISOS;      document.getElementById("trasladoInput").value = window.PRELOADED_TRASLADO;      updateDashboard();      const content = document.getElementById("dashboardContent");      const filters = document.getElementById("filtersPanel");      const container = document.querySelector(".dashboard-container");      if (content) content.style.display = "block";      if (filters) filters.style.display = "block";      if (container) container.classList.add("expanded");      const loading = document.getElementById("loadingSpinner");      const noData = document.getElementById("noDataState");      if (loading) loading.classList.remove("active");      if (noData) noData.style.display = "none";    }, 100);  }});</script></body></html>
+<script>window.PRELOADED_DATA = [{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":173,"Diciembre":1754,"TOTAL":2100},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1063,"Mayo":1876,"Junio":0,"Julio":31,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2559,"TOTAL":5529},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":658,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":658},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2450,"TOTAL":2450},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":466,"Mayo":680,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":729,"TOTAL":1875},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2117,"TOTAL":2117},{"Empresa":"Aguilar Arimany, Asociados Consultores, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":173,"Diciembre":1639,"TOTAL":1985},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":1233,"Mayo":1411,"Junio":0,"Julio":573,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1037,"TOTAL":4254},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":617,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":617},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2350,"TOTAL":2350},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":466,"Mayo":545,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":839,"TOTAL":1850},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1930,"TOTAL":1930},{"Empresa":"Hidroelectrica Raaxhá, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":"200.09.14.23","Categoría":"VIATICOS MEJORA CONTINUA","Enero":413,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":324,"Junio":101,"Julio":0,"Agosto":428,"Septiembre":46,"Octubre":269,"Noviembre":0,"Diciembre":1799,"TOTAL":3380},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":173,"Septiembre":0,"Octubre":0,"Noviembre":173,"Diciembre":1793,"TOTAL":2139},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":627,"Abril":258,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":202,"Diciembre":289,"TOTAL":1376},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":430,"TOTAL":430},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":103,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":103},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":246,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":380,"TOTAL":626},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":120,"TOTAL":120},{"Empresa":"Multiservicios de Energía Renovable, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":622,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":328,"TOTAL":950},{"Empresa":"Oxec, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":173,"Octubre":0,"Noviembre":173,"Diciembre":924,"TOTAL":1270},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":1467,"Abril":0,"Mayo":175,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1368,"TOTAL":3010},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1795,"TOTAL":1795},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":1344,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":340,"TOTAL":1684},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":1595,"Diciembre":545,"TOTAL":2140},{"Empresa":"Oxec, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":641,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":173,"Diciembre":2903,"TOTAL":3890},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":3112,"Abril":0,"Mayo":1944,"Junio":0,"Julio":731,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":6146,"Diciembre":1546,"TOTAL":13479},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":3113,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":3113},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":3870,"TOTAL":3870},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":1411,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1039,"TOTAL":2450},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":3721,"Diciembre":235,"TOTAL":3956},{"Empresa":"Oxec II, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":105,"TOTAL":105},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":565,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":330,"TOTAL":895},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":95,"TOTAL":95},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":695,"TOTAL":695},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":780,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":89,"TOTAL":869},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":902,"TOTAL":902},{"Empresa":"Transporte de Energia Electrica del Norte, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":"200.01.01","Categoría":"REPUESTOS ELECTRICOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.01","Categoría":"ASESORIA EXTERNA SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":173,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":173,"Diciembre":1232,"TOTAL":1578},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.02","Categoría":"EQUIPOS DE PROTECCION PERSONAL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":951,"Mayo":1872,"Junio":0,"Julio":434,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":1670,"TOTAL":4927},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.03","Categoría":"GESTION DE RIESGOS Y CUMPLIMIENTO LEGAL (LICENCIAS/AUDITORIAS)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.04","Categoría":"PREVENCION Y RESPUESTA ANTE EMERGENCIAS (EQUIPO CONTRA INCENDIO)","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":395,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":395},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.05","Categoría":"MEDICIONES CONTROL SSO","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2120,"TOTAL":2120},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.06","Categoría":"BOTIQUINES","Enero":0,"Febrero":0,"Marzo":0,"Abril":397,"Mayo":614,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":884,"TOTAL":1895},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.64.07","Categoría":"MANTENIMIENTO DE SENALIZACION INDUSTRIAL","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":2007,"TOTAL":2007},{"Empresa":"Visión de Aguila, S.A.","Nomenclatura":" 200.09.65.01","Categoría":"MEJORA DE PROCESOS","Enero":0,"Febrero":0,"Marzo":0,"Abril":0,"Mayo":0,"Junio":0,"Julio":0,"Agosto":0,"Septiembre":0,"Octubre":0,"Noviembre":0,"Diciembre":0,"TOTAL":0}];window.PRELOADED_EMPRESA = "Todas";window.PRELOADED_CATEGORIA = "Todas";window.PRELOADED_MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre"];window.PRELOADED_MESES_EJEC = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre"];window.PRELOADED_COMPROMISOS = "0";window.PRELOADED_TRASLADO = "0";window.addEventListener("DOMContentLoaded", function() {  if (window.PRELOADED_DATA) {    DATA = window.PRELOADED_DATA;    selectedMonths = new Set(window.PRELOADED_MESES);    mesesEjecutados = new Set(window.PRELOADED_MESES_EJEC);    setTimeout(function() {      initializeFilters();      initializeMonthFilters();      document.getElementById("empresaFilter").value = window.PRELOADED_EMPRESA;      document.getElementById("categoriaFilter").value = window.PRELOADED_CATEGORIA;      document.getElementById("compromisosInput").value = window.PRELOADED_COMPROMISOS;      document.getElementById("trasladoInput").value = window.PRELOADED_TRASLADO;      updateDashboard();      const content = document.getElementById("dashboardContent");      const filters = document.getElementById("filtersPanel");      const container = document.querySelector(".dashboard-container");      if (content) content.style.display = "block";      if (filters) filters.style.display = "block";      if (container) container.classList.add("expanded");      const loading = document.getElementById("loadingSpinner");      const noData = document.getElementById("noDataState");      if (loading) loading.classList.remove("active");      if (noData) noData.style.display = "none";    }, 100);  }});</script></body></html>
