@@ -165,7 +165,7 @@
     <p>Valoración · Depreciación · Precio Sugerido</p>
   </div>
 </div>
-<div class="attrib">Generado con IA (Claude - ERC AI Workspace) - Restringido · No canónico: validar en herramienta oficial · Modelo v2 con parámetros provisionales</div>
+<div class="attrib">Generado con IA (Claude - ERC AI Workspace) - Restringido · No canónico: validar en herramienta oficial · Modelo v3 (fórmula A) con parámetros provisionales</div>
 
 <div class="wrapper">
 
@@ -188,16 +188,16 @@
       <div class="pgroup-title">Tiempo y valor residual</div>
       <div class="pgrid">
         <div class="field"><label>Vida contable (meses)</label><input type="number" id="pVidaCont" value="36" min="1" max="240" onchange="recalcularTodo()"><span class="hint">Libros = 0 al cumplirse</span></div>
-        <div class="field"><label>Vida económica (meses)</label><input type="number" id="pVidaEco" value="60" min="1" max="240" onchange="recalcularTodo()"><span class="hint">Edad en que el factor llega al residual</span></div>
-        <div class="field"><label>Valor residual (%)</label><input type="number" id="pResidual" value="10" min="0" max="100" step="0.5" onchange="recalcularTodo()"><span class="hint">Factor de edad mínimo</span></div>
+        <div class="field"><label>Vida económica (meses)</label><input type="number" id="pVidaEco" value="60" min="1" max="240" onchange="recalcularTodo()"><span class="hint">Edad en que el factor de edad del costo llega al residual</span></div>
+        <div class="field"><label>Valor residual (%)</label><input type="number" id="pResidual" value="10" min="0" max="100" step="0.5" onchange="recalcularTodo()"><span class="hint">Factor de edad mínimo (se aplica solo al costo, no al mercado)</span></div>
       </div>
     </div>
 
     <div class="pgroup">
       <div class="pgroup-title">Referencia de mercado</div>
       <div class="pgrid">
-        <div class="field"><label>Peso del mercado (w, %)</label><input type="number" id="pW" value="50" min="0" max="100" onchange="recalcularTodo()"><span class="hint">Base = w·Mercado + (1−w)·Costo</span></div>
-        <div class="field"><label>Reducción sin mercado (d, %)</label><input type="number" id="pD" value="20" min="0" max="100" onchange="recalcularTodo()"><span class="hint">Base = Costo × (1 − d)</span></div>
+        <div class="field"><label>Peso del mercado (w, %)</label><input type="number" id="pW" value="50" min="0" max="100" onchange="recalcularTodo()"><span class="hint">Con mercado: w·Mercado + (1−w)·Costo·F_edad (el mercado no se deprecia)</span></div>
+        <div class="field"><label>Reducción sin mercado (d, %)</label><input type="number" id="pD" value="20" min="0" max="100" onchange="recalcularTodo()"><span class="hint">Sin mercado: Costo × (1 − d) × F_edad</span></div>
       </div>
     </div>
 
@@ -379,9 +379,10 @@
       </details>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:16px">
+    <div style="display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap">
       <button class="btn" onclick="agregarEquipo()">➕ Agregar al inventario</button>
       <button class="btn btn-outline" onclick="limpiarForm()">✕ Limpiar</button>
+      <span style="flex:1;min-width:240px;font-size:.78rem;color:var(--warn);line-height:1.35">⚠ El inventario no se guarda: vive solo en esta página y se pierde al cerrarla o recargarla. El CSV exportado es el registro.</span>
     </div>
   </div>
 
@@ -491,20 +492,27 @@
 // ═══════════════════════════════════════════════════════════════
 // Generado con IA (Claude - ERC AI Workspace) - Restringido
 // No canónico: validar en herramienta oficial (Excel / Power Query / Python).
-// Modelo v2 — parámetros PROVISIONALES, pendientes de aprobación de Gerencia.
+// Modelo v3 (fórmula A) — parámetros PROVISIONALES, pendientes de aprobación de Gerencia.
+// Cambio v2 → v3: el factor de edad ya NO se aplica a la referencia de mercado
+// (el mercado ya es precio de usado); solo deprecia el componente de costo.
 //
 //   Costo_sinIVA    = monto c/IVA ÷ 1.12
 //   Libros (aprox.) = meses ≥ vidaContable ? 0 : Costo × (1 − meses/vidaContable)
-//   Base            = con mercado: w·Mercado_sinIVA + (1−w)·Costo
-//                     sin mercado: Costo × (1 − d)
 //   F_edad          = máx(r, 1 − (1−r)·meses/vidaEconómica)
+//   Comp_mercado    = w · Mercado_sinIVA                       (solo si hay mercado)
+//   Comp_costo      = con mercado: (1−w) · Costo · F_edad
+//                     sin mercado: Costo · (1−d) · F_edad      (lógica previa, sin cambio)
+//   Base            = Comp_mercado + Comp_costo
 //   F_estado        = tabla de parámetros
-//   Precio_sinIVA   = redondeo( máx(Piso_por_tipo, Base × F_edad × F_estado) )
+//   Precio_calc     = Base × F_estado
+//   Precio_sinIVA   = redondeo( máx(Piso_por_tipo, Precio_calc) )
 //   IVA = round(Precio × 12%, 2) ; Total = Precio + IVA
 //   Libros solo genera ALERTA (precio < libros); no bloquea ni entra al precio.
+//   Valores por defecto (vida 60 m, residual 10 %, w 50 %, pisos) = definidos por Gerencia; no modificar aquí.
+//   Pruebas: testModelo() (se ejecuta al cargar; resultado en la consola del navegador).
 // ═══════════════════════════════════════════════════════════════
 const IVA = 0.12;
-const MODELO_VERSION = 'v2 · parámetros provisionales';
+const MODELO_VERSION = 'v3 (fórmula A) · parámetros provisionales';
 const CLASIF = 'Generado con IA (Claude - ERC AI Workspace) - Restringido · No canónico: validar en herramienta oficial';
 const Q = n => `Q${Number(n).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -578,10 +586,10 @@ function getParams(){
 }
 
 // ── Antigüedad y valor en libros (línea recta, aproximado) ──
-function calcDep(valorConIVA, fechaCompra, P){
+function calcDep(valorConIVA, fechaCompra, P, fechaCalc = getFecha()){
   const vc = (parseFloat(valorConIVA)||0) / (1 + IVA);
   const d0 = new Date(fechaCompra + 'T00:00:00');
-  const d1 = new Date(getFecha() + 'T00:00:00');
+  const d1 = new Date(fechaCalc + 'T00:00:00');
   if(isNaN(d0)||isNaN(d1)) return null;
   const meses = Math.max(0,(d1.getFullYear()-d0.getFullYear())*12+(d1.getMonth()-d0.getMonth()));
   const años = Math.floor(meses/12), mr = meses%12;
@@ -594,9 +602,10 @@ function calcDep(valorConIVA, fechaCompra, P){
 }
 
 // ── Motor de precio ──
-function calcEquipo(eq){
-  const P = getParams();
-  const dep = calcDep(eq.valorConIVA, eq.fecha, P);
+// P y fechaCalc son opcionales (por defecto: panel de parámetros y fecha de cálculo de la pantalla);
+// testModelo() los inyecta para que la prueba no dependa de lo que el usuario edite en pantalla.
+function calcEquipo(eq, P = getParams(), fechaCalc = getFecha()){
+  const dep = calcDep(eq.valorConIVA, eq.fecha, P, fechaCalc);
   if(!dep) return null;
 
   // Libros: manual (Contabilidad) si se ingresó (0 válido); si no, aproximado
@@ -611,10 +620,14 @@ function calcEquipo(eq){
   const mercSin = mercConIVA > 0 ? mercConIVA / (1 + IVA) : 0;
   const conMercado = mercSin > 0;
 
-  const base = conMercado ? P.w*mercSin + (1-P.w)*dep.vc : dep.vc*(1-P.d);
+  // Fórmula A: la edad deprecia solo el costo; el mercado (ya precio de usado) entra sin depreciar.
   const fEdad = Math.max(P.r, 1 - (1-P.r) * dep.meses / P.vidaEco);
+  const compMercado = conMercado ? P.w * mercSin : 0;
+  const costoBase   = conMercado ? (1-P.w) * dep.vc : dep.vc * (1-P.d);   // costo antes de edad
+  const compCosto   = costoBase * fEdad;
+  const base = compMercado + compCosto;
   const fEstado = P.fEstado[eq.estado] ?? P.fEstado.Malo;
-  const precioCalc = base * fEdad * fEstado;
+  const precioCalc = base * fEstado;
 
   const piso = P.piso[eq.tipo] ?? P.piso.Otro;
   const aplicoPiso = precioCalc < piso;
@@ -626,11 +639,68 @@ function calcEquipo(eq){
 
   return {
     ...dep, P, vl, usaManual, librosAprox,
-    mercConIVA, mercSin, conMercado, base, fEdad, fEstado,
+    mercConIVA, mercSin, conMercado, compMercado, costoBase, compCosto, base, fEdad, fEstado,
     precioCalc, piso, aplicoPiso, precio, iva, total, bajoLibros,
     perdidaLibros: bajoLibros ? vl - precio : 0
   };
 }
+
+// ── Pruebas del modelo (fórmula A) ──
+// Usa parámetros fijos (los valores por defecto del panel) y fecha de cálculo fija,
+// por lo que el resultado no depende de lo que el usuario edite en pantalla.
+// Se ejecuta al cargar; ver resultado en la consola del navegador. También: testModelo() a mano.
+function testModelo(){
+  const P = {
+    vidaCont:36, vidaEco:60, r:0.10, w:0.50, d:0.20,
+    fEstado:{Bueno:1, Regular:0.75, Malo:0.5, Obsoleto:0.25},
+    piso:{Laptop:500, Desktop:400, Monitor:150, Impresora:100, Otro:100},
+    redondeo:1
+  };
+  const fallos = []; let total = 0;
+  const igual = (nombre, real, esperado, tol=0.005) => {
+    total++;
+    const ok = typeof esperado === 'boolean' ? real === esperado : Math.abs(real - esperado) <= tol;
+    if(!ok) fallos.push(`${nombre}: obtenido ${real}, esperado ${esperado}`);
+  };
+  // Caso real: costo c/IVA 6,941.96 · 70 meses · mercado s/IVA 2,500 (=2,800 c/IVA) · Regular
+  const real = {tipo:'Laptop', estado:'Regular', fecha:'2020-01-15', valorConIVA:6941.96, mercadoConIVA:2800, valorLibrosManual:''};
+  const c1 = calcEquipo(real, P, '2025-11-15');
+  igual('T1 meses',            c1.meses, 70, 0);
+  igual('T1 costo s/IVA',      c1.vc, 6198.18);
+  igual('T1 factor edad',      c1.fEdad, 0.10, 1e-9);
+  igual('T1 comp. mercado',    c1.compMercado, 1250);
+  igual('T1 comp. costo',      c1.compCosto, 309.91);
+  igual('T1 base',             c1.base, 1559.91);
+  igual('T1 precio calculado', c1.precioCalc, 1169.93);   // 1,169.93 (sin redondear)
+  igual('T1 piso aplicado',    c1.aplicoPiso, false);
+  igual('T1 precio s/IVA',     c1.precio, 1170);
+  igual('T1 IVA',              c1.iva, 140.40);
+  igual('T1 total',            c1.total, 1310.40);
+  // Mismo equipo en estado Obsoleto: 1,559.91 × 0.25 = 389.98 < 500 → piso
+  const c2 = calcEquipo({...real, estado:'Obsoleto'}, P, '2025-11-15');
+  igual('T2 piso aplicado',    c2.aplicoPiso, true);
+  igual('T2 precio s/IVA',     c2.precio, 500);
+  igual('T2 total',            c2.total, 560);
+  // El mercado no se deprecia: su componente es igual a 12 y a 70 meses
+  const c3 = calcEquipo(real, P, '2021-01-15');
+  igual('T3 meses',            c3.meses, 12, 0);
+  igual('T3 comp. mercado',    c3.compMercado, 1250);
+  // Sin mercado (lógica previa): 12 meses, Bueno → costo × 0.8 × 0.82 × 1
+  const c4 = calcEquipo({...real, estado:'Bueno', mercadoConIVA:''}, P, '2021-01-15');
+  igual('T4 con mercado',      c4.conMercado, false);
+  igual('T4 comp. mercado',    c4.compMercado, 0);
+  igual('T4 precio calculado', c4.precioCalc, 4066.005);   // 6,198.1786 × 0.8 × 0.82
+  igual('T4 precio s/IVA',     c4.precio, 4066);
+
+  if(fallos.length){ console.error(`testModelo: ${fallos.length} de ${total} pruebas FALLARON\n` + fallos.join('\n')); }
+  else { console.info(`testModelo: ${total} pruebas OK (fórmula A)`); }
+  return {ok: fallos.length === 0, total, fallos};
+}
+// Solo escribe en consola: nunca alert(), nunca toca el DOM, y un error inesperado no se propaga.
+window.addEventListener('load', () => {
+  try { testModelo(); }
+  catch(e){ console.error('testModelo: error inesperado (no afecta el cálculo ni la pantalla)', e); }
+});
 
 // ── Formateo de especificaciones ──
 function fmtRAM(v){ if(!v) return ''; const s=String(v).trim(); if(/GB|TB|MB/i.test(s)) return s; return /^\d+$/.test(s)?`${s} GB`:s; }
@@ -701,26 +771,37 @@ function buildPasos(c){
     `<div class="cs ${extra}"><span class="n">${n}</span><div class="t">${t}</div><div class="v">${v}</div></div>`;
   const p = [];
   let n = 1;
+  const pct = x => (x*100).toFixed(0);
   p.push(paso(n++, `<b>Costo sin IVA</b> · ${Q(c.vc*(1+IVA))} ÷ 1.12`, Q(c.vc)));
   p.push(paso(n++,
-    c.conMercado
-      ? `<b>Base</b> · ${(P.w*100).toFixed(0)}% × mercado s/IVA (${Q(c.mercSin)}) + ${(100-P.w*100).toFixed(0)}% × costo`
-      : `<b>Base</b> · sin mercado: costo × (1 − ${(P.d*100).toFixed(0)}%) ⚠`,
-    Q(c.base)));
-  p.push(paso(n++,
-    `<b>Factor de edad</b> · ${c.meses} meses de ${P.vidaEco}; mínimo ${(P.r*100).toFixed(0)}%`,
+    `<b>Factor de edad</b> (solo para el costo) · ${c.meses} meses de ${P.vidaEco}; mínimo ${pct(P.r)}%`,
     `${(c.fEdad*100).toFixed(1)}%`));
+  p.push(paso(n++,
+    c.conMercado
+      ? `<b>Componente mercado</b> · ${pct(P.w)}% × mercado s/IVA (${Q(c.mercSin)}) — sin depreciar por edad`
+      : `<b>Componente mercado</b> · sin referencia de mercado ⚠ (no aporta; se usa la reducción de ${pct(P.d)}% sobre el costo)`,
+    Q(c.compMercado)));
+  p.push(paso(n++,
+    c.conMercado
+      ? `<b>Componente costo depreciado</b> · ${pct(1-P.w)}% × costo (${Q(c.vc)}) × factor de edad (${(c.fEdad*100).toFixed(1)}%)`
+      : `<b>Componente costo depreciado</b> · costo (${Q(c.vc)}) × (1 − ${pct(P.d)}%) × factor de edad (${(c.fEdad*100).toFixed(1)}%)`,
+    Q(c.compCosto)));
+  p.push(paso(n++, `<b>Base</b> · componente mercado + componente costo`, Q(c.base)));
   p.push(paso(n++, `<b>Factor de estado</b> · ${esc(c.estadoLbl||'')||'estado'}`, `× ${c.fEstado.toFixed(2)}`));
-  p.push(paso(n++, `<b>Precio calculado</b> · base × edad × estado`, Q(c.precioCalc)));
-  if(c.aplicoPiso) p.push(paso(n++, `<b>Piso mínimo</b> · el cálculo quedó por debajo del mínimo facturable`, Q(c.piso)));
+  p.push(paso(n++, `<b>Precio calculado</b> · base × estado`, Q(c.precioCalc)));
+  p.push(c.aplicoPiso
+    ? paso(n++, `<b>⚠ Piso mínimo APLICADO</b> · el precio calculado (${Q(c.precioCalc)}) quedó por debajo del mínimo facturable (${Q(c.piso)})`,
+        `<span style="color:var(--warn);font-weight:700">${Q(c.piso)}</span>`)
+    : paso(n++, `<b>Piso mínimo</b> · no aplica: el precio calculado supera el mínimo facturable (${Q(c.piso)})`, '—'));
   p.push(paso(n++, `<b>Precio sin IVA</b> · redondeado a Q${P.redondeo}`, Q(c.precio)));
   p.push(paso(n++, `<b>IVA</b> · 12%`, Q(c.iva)));
   p.push(paso('=', `<b>Total a facturar</b>`, Q(c.total), 'final'));
   const libros = c.usaManual ? 'ingresado por Contabilidad'
     : c.totalDep ? `0.00 (más de ${P.vidaCont} meses: totalmente depreciado)`
     : 'aproximado en línea recta; validar con Contabilidad';
+  const notaEdad = `<div class="cs-note">ℹ El factor de edad se aplica solo al costo: la referencia de mercado ya es precio de un equipo usado, y depreciarla por edad la contaría dos veces.</div>`;
   const nota = `<div class="cs-note">Valor en libros ${Q(c.vl)} — ${libros}. No entra al precio; solo genera alerta si el precio queda por debajo.</div>`;
-  return `<div class="calc-steps">${p.join('')}${nota}</div>`;
+  return `<div class="calc-steps">${p.join('')}${notaEdad}${nota}</div>`;
 }
 
 // ── Validación compartida ──
@@ -1097,8 +1178,10 @@ function imprimirFichas(tipo='publica'){
             ${r('Valor en libros'+(c.librosAprox?' (aprox.)':c.usaManual?' (Contab.)':''),Q(c.vl))}
             ${r('Ref. mercado c/IVA',c.conMercado?Q(c.mercConIVA):'— sin referencia','#b8860b')}
             ${eq.mercadoFuente?r('Fuente mercado',esc(eq.mercadoFuente)):''}
+            ${r('Componente mercado',Q(c.compMercado))}
+            ${r('Componente costo (× edad)',Q(c.compCosto))}
             ${r('Base de cálculo',Q(c.base))}
-            ${r('Factor edad · estado',`${(c.fEdad*100).toFixed(1)}% · ×${c.fEstado.toFixed(2)}`)}
+            ${r('Factor edad (solo costo) · estado',`${(c.fEdad*100).toFixed(1)}% · ×${c.fEstado.toFixed(2)}`)}
             ${r('Precio calculado',Q(c.precioCalc))}
             ${r('Modelo',MODELO_VERSION)}
           </table>
@@ -1122,6 +1205,7 @@ function imprimirFichas(tipo='publica'){
 function exportarCSV(){
   if(!equipos.length){ alert('No hay equipos.'); return; }
   const fr = getFecha();
+  const nz = x => String(+Number(x).toFixed(6));   // número sin ceros sobrantes, precisión suficiente para recalcular
   const cols = [
     ['#',          (eq,c,i)=>i+1],
     ['Tipo',       eq=>eq.tipo],
@@ -1155,9 +1239,20 @@ function exportarCSV(){
     ['IVA',        (eq,c)=>c.iva.toFixed(2)],
     ['Total Factura',(eq,c)=>c.total.toFixed(2)],
     ['Alertas',    (eq,c)=>[!c.conMercado?'Sin mercado':'',c.bajoLibros?'Bajo libros':''].filter(Boolean).join(' | ')],
-    ['Fecha Reporte',()=>fmtFecha(fr)],
+    ['Componente Mercado',(eq,c)=>c.compMercado.toFixed(2)],
+    ['Componente Costo (x edad)',(eq,c)=>c.compCosto.toFixed(2)],
+    ['Fecha Reporte',()=>fmtFecha(fr)],   // = fecha de cálculo usada (antigüedad = meses entre Fecha Compra y esta fecha)
     ['Versión Modelo',()=>MODELO_VERSION],
-    ['Clasificación',()=>CLASIF]
+    ['Clasificación',()=>CLASIF],
+    // Parámetros usados en cada fila, para recalcular sin el dashboard (fracciones, no %; ej. 0.1 = 10 %).
+    ['Param. Vida Económica (meses)',(eq,c)=>nz(c.P.vidaEco)],
+    ['Param. Vida Contable (meses)', (eq,c)=>nz(c.P.vidaCont)],
+    ['Param. Residual (fracción)',   (eq,c)=>nz(c.P.r)],
+    ['Param. w Mercado (fracción)',  (eq,c)=>nz(c.P.w)],
+    ['Param. d Sin Mercado (fracción)',(eq,c)=>nz(c.P.d)],
+    ['Param. Piso s/IVA (según tipo)',(eq,c)=>nz(c.piso)],
+    ['Param. Redondeo (Q)',          (eq,c)=>nz(c.P.redondeo)],
+    ['Param. Factor Estado (usado)', (eq,c)=>nz(c.fEstado)]
   ];
   const safe = v => {
     let s = String(v ?? '');
